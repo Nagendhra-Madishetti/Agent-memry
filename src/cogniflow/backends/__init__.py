@@ -6,6 +6,6 @@ The Graphiti/FalkorDB backend is deferred to Phase 1 and will live alongside
 
 from __future__ import annotations
 
-from .noop import NoOpBackend
+from .noop import AsyncNoOpBackend, NoOpBackend
 
-__all__ = ["NoOpBackend"]
+__all__ = ["NoOpBackend", "AsyncNoOpBackend"]

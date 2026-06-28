@@ -1,13 +1,26 @@
 """The plugin conformance-test harness.
 
-Any backend claiming to be an cogniflow ``Substrate`` must pass this suite. Phase 0
-ships a *stub*: it checks structural protocol conformance and that each operation
-returns a well-typed result. Behavioral conformance (bi-temporal correctness,
-falsification semantics) is added in later phases.
+Any backend claiming to be a cogniflow ``Substrate`` or ``AsyncSubstrate`` must
+pass this suite. It routes by async-ness so a backend is graded by a driver that
+actually ran it. Phase-1 checks are structural/type-level; behavioral conformance
+(bi-temporal correctness, falsification semantics) is added with the FalkorDB
+backend.
 """
 
 from __future__ import annotations
 
-from .suite import CheckResult, assert_conforms, run_conformance
+from .suite import (
+    CheckResult,
+    assert_conforms,
+    assert_conforms_async,
+    run_conformance,
+    run_conformance_async,
+)
 
-__all__ = ["CheckResult", "run_conformance", "assert_conforms"]
+__all__ = [
+    "CheckResult",
+    "run_conformance",
+    "assert_conforms",
+    "run_conformance_async",
+    "assert_conforms_async",
+]
