@@ -102,13 +102,20 @@ class RetrievalResult:
 
 @dataclass(frozen=True, slots=True)
 class FalsificationVerdict:
-    """The outcome of ``Substrate.falsify`` for one target belief."""
+    """The outcome of ``Substrate.falsify`` for one target belief.
+
+    ``indeterminate`` distinguishes "I cannot tell" from a confident
+    ``superseded=False``. A policy that lacks the information to adjudicate (e.g. an
+    interval rule given a belief with no ``valid_at``) must set ``indeterminate=True``,
+    so a downstream verify loop never reads a silent ``False`` as "verified clean".
+    """
 
     target_id: str
     superseded: bool
     invalid_at: datetime | None = None
     superseded_by: str | None = None
     rationale: str = ""
+    indeterminate: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,3 +125,21 @@ class WriteReceipt:
     episode_id: str
     created_belief_ids: tuple[str, ...] = ()
     invalidated_belief_ids: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ProvenanceTrace:
+    """The "why" behind a belief: what asserted it, and what superseded it.
+
+    ``asserted_by`` are the episode ids that introduced the belief. If the belief was
+    superseded, ``superseded_by_belief`` / ``superseded_by_episode`` name the fact and
+    the ingestion that ended it; ``invalid_at`` (event-time) and ``expired_at``
+    (system-time) are when it stopped being true and when the system learned that.
+    """
+
+    belief_id: str
+    asserted_by: tuple[str, ...] = ()
+    superseded_by_belief: str | None = None
+    superseded_by_episode: str | None = None
+    invalid_at: datetime | None = None
+    expired_at: datetime | None = None

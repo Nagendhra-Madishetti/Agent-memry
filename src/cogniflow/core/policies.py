@@ -181,8 +181,13 @@ class IntervalOverlapFalsificationPolicy:
     def assess(self, target: Belief, candidates: Sequence[Belief]) -> FalsificationVerdict:
         target_start = target.valid_at
         if target_start is None:
+            # Cannot adjudicate an interval rule without a start: indeterminate, NOT a
+            # confident "not superseded" (B1).
             return FalsificationVerdict(
-                target_id=target.id, superseded=False, rationale="target has no valid_at"
+                target_id=target.id,
+                superseded=False,
+                indeterminate=True,
+                rationale="indeterminate: target has no valid_at to adjudicate",
             )
         target_end = target.invalid_at  # event-time end (None = open)
         best: Belief | None = None

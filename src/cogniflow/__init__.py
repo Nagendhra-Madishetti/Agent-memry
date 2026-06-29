@@ -7,11 +7,19 @@ dependency-free.
 
 from __future__ import annotations
 
+from .core.audit import (
+    AuditLedger,
+    bitemporal_query,
+    event_time_query,
+    reconstruct_as_of_system,
+    system_time_replay,
+)
 from .core.contracts import AsyncSubstrate, Substrate
 from .core.types import (
     Belief,
     Episode,
     FalsificationVerdict,
+    ProvenanceTrace,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
@@ -40,6 +48,13 @@ __all__ = [
     "FalsificationVerdict",
     "WriteReceipt",
     "utc_now",
+    # audit / replay (L5)
+    "AuditLedger",
+    "ProvenanceTrace",
+    "system_time_replay",
+    "event_time_query",
+    "bitemporal_query",
+    "reconstruct_as_of_system",
     # policy registry (L3 plugin seam)
     "FAMILIES",
     "PolicyNotFoundError",

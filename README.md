@@ -7,19 +7,19 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 3 (the policy layer - integration becomes a framework).**
-> The four policy families (Retrieval / Validity / Falsification / Writeback) are now
-> pluggable: registered by name, selected by config, injected uniformly, and
-> conformance-tested. A contributor registers a policy and has it verified against a
-> family contract. Selection is **fail-loud** - a missing or misnamed policy raises at
-> wiring time; the postprocessor no longer silently defaults. Two reference policies per
-> family ship (e.g. validity `strict` / `grace_window`, retrieval `default` / `recency`,
-> falsification `none` / read-time `interval_overlap`, writeback `never` / `always`).
-> The two falsifications stay distinct: write-time ingestion supersession is untouched;
-> `interval_overlap` is a read-time, side-effect-free assessor (no LLM). Dead-letters are
-> now a first-class signal (count + distinct event + honest freshness).
-> Deferred: replay/audit API (Phase 4), LLM-driven `verify_fact` (Phase 5), advanced
-> rerank (Phase 5), multi-backend (Phase 6).
+> **Status: Phase 4 (the audit / replay layer - the differentiator as infrastructure).**
+> The dual-axis bi-temporal model is now a real, headless audit surface (`AuditLedger`,
+> an opt-in read-only capability separate from the substrate): event-time ("what was true
+> in the world at T"), system-time replay ("what did the system believe at S"), the
+> bitemporal point query ("believed at S about world-time T"), and a provenance trace.
+> The centerpiece is the **un-knowing** invariant: a replay to S un-knows any invalidation
+> the system learned after S, so a fact superseded later reads as live-and-un-superseded
+> from S's vantage - never leaking knowledge backward in time. Replay is **not search**:
+> it pushes the temporal predicate straight into Cypher (resolving the long-tracked
+> FalkorDriver `search_filter` no-op) and never over-fetches history. Replay is fully
+> deterministic (no LLM) and is the most heavily invariant-tested surface in the project.
+> Deferred: LLM-driven `verify_fact` (Phase 5), advanced rerank + replay caching (Phase 5),
+> replay UI (separate optional package), multi-backend (Phase 6).
 
 ## Design rule
 

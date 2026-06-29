@@ -53,6 +53,7 @@ def test_io_type_field_surfaces_are_stable() -> None:
         "invalid_at",
         "superseded_by",
         "rationale",
+        "indeterminate",
     }
     assert _fields(types.WriteReceipt) == {
         "episode_id",

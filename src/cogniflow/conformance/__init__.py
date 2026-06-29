@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from .policy_suites import (
     assert_policy_conforms,
+    check_falsification_determinism,
     run_policy_conformance,
 )
 from .suite import (
@@ -29,4 +30,5 @@ __all__ = [
     "assert_conforms_async",
     "run_policy_conformance",
     "assert_policy_conforms",
+    "check_falsification_determinism",
 ]

@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+from .audit import (
+    AuditLedger,
+    believed_at,
+    bitemporal_query,
+    event_time_query,
+    known_at,
+    reconstruct_as_of_system,
+    system_time_replay,
+)
 from .contracts import AsyncSubstrate, Substrate
 from .policies import (
     AlwaysWritebackPolicy,
@@ -22,6 +31,7 @@ from .types import (
     Belief,
     Episode,
     FalsificationVerdict,
+    ProvenanceTrace,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
@@ -33,6 +43,15 @@ __all__ = [
     # contracts
     "Substrate",
     "AsyncSubstrate",
+    # audit / replay (L5)
+    "AuditLedger",
+    "believed_at",
+    "known_at",
+    "reconstruct_as_of_system",
+    "system_time_replay",
+    "event_time_query",
+    "bitemporal_query",
+    "ProvenanceTrace",
     # policies (interfaces)
     "RetrievalPolicy",
     "ValidityPolicy",

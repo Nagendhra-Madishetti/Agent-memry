@@ -102,13 +102,29 @@ def check_falsification_policy(policy: Any) -> list[CheckResult]:
     later = Belief(id="c", statement="x", created_at=_dt(2022), valid_at=_dt(2021))
     candidates = [target, later]
 
-    v1 = policy.assess(target, candidates)
-    v2 = policy.assess(target, candidates)
-    check("verdict targets the asked belief", v1.target_id == target.id)
-    check("deterministic", v1 == v2)
-    check("superseded is bool", isinstance(v1.superseded, bool))
-    # read-only: frozen beliefs cannot be mutated; assert inputs unchanged
+    verdict = policy.assess(target, candidates)
+    # All-policy invariants (the future LLM policy must pass these too):
+    check("verdict targets the asked belief", verdict.target_id == target.id)
+    check("superseded is bool", isinstance(verdict.superseded, bool))
+    check("indeterminate is bool", isinstance(verdict.indeterminate, bool))
+    # read-only: frozen beliefs cannot be mutated; assert inputs unchanged (no write-time)
     check("does not mutate target", target.invalid_at == _dt(2022) and target.expired_at is None)
+    return results
+
+
+def check_falsification_determinism(policy: Any) -> list[CheckResult]:
+    """Determinism is asserted only of policies that CLAIM it (B2 two-tier).
+
+    The LLM-driven falsification policy (Phase 5) is not deterministic and is exempt
+    from this suite; it must still pass ``check_falsification_policy`` (the invariants).
+    """
+    results, check = _checker()
+    target = Belief(
+        id="t", statement="x", created_at=_dt(2019), valid_at=_dt(2019), invalid_at=_dt(2022)
+    )
+    later = Belief(id="c", statement="x", created_at=_dt(2022), valid_at=_dt(2021))
+    candidates = [target, later]
+    check("deterministic", policy.assess(target, candidates) == policy.assess(target, candidates))
     return results
 
 

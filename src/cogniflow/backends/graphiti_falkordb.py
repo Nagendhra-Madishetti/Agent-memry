@@ -28,11 +28,15 @@ from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
 from graphiti_core.nodes import EntityNode, EpisodeType
 from graphiti_core.search.search_filters import ComparisonOperator, DateFilter, SearchFilters
 
+from ..core.audit import bitemporal_query as _bitemporal_query
+from ..core.audit import event_time_query as _event_time_query
+from ..core.audit import system_time_replay as _system_time_replay
 from ..core.policies import ValidityPolicy, filter_valid
 from ..core.types import (
     Belief,
     Episode,
     FalsificationVerdict,
+    ProvenanceTrace,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
@@ -253,6 +257,111 @@ class GraphitiFalkorDBBackend:
             superseded=superseded,
             invalid_at=edge.invalid_at,
             rationale="reflects stored bi-temporal invalidation state",
+        )
+
+    # --- AuditLedger (L5): read-only replay via DIRECT temporal queries ----------
+    #
+    # Replay is a temporal scan, not a relevance search, so it does NOT route through
+    # graphiti.search (whose FalkorDriver search_filter is a no-op, see KNOWN_ISSUES).
+    # We push the temporal predicate straight into Cypher. Dates are stored as ISO-8601
+    # UTC strings, which sort chronologically under lexicographic comparison, so the
+    # predicate is correct in the DB; the pure core functions re-apply the exact
+    # (parsed-datetime) logic as the authoritative filter. The system-time predicate
+    # (created_at <= S) bounds the scan to history-known-by-S; we never fetch the whole
+    # graph into memory.
+
+    _AUDIT_RETURN = (
+        " RETURN r.uuid AS uuid, r.fact AS fact, r.name AS name, "
+        "r.created_at AS created_at, r.valid_at AS valid_at, r.invalid_at AS invalid_at, "
+        "r.expired_at AS expired_at, r.episodes AS episodes, r.group_id AS group_id, "
+        "a.uuid AS src, b.uuid AS tgt"
+    )
+
+    @staticmethod
+    def _parse_dt(value: str | None) -> datetime | None:
+        return datetime.fromisoformat(value) if value else None
+
+    @staticmethod
+    def _iso(value: datetime) -> str:
+        return value.astimezone(timezone.utc).isoformat()
+
+    def _row_to_belief(self, rec: dict[str, Any]) -> Belief:
+        return Belief(
+            id=rec["uuid"],
+            statement=rec["fact"],
+            created_at=self._parse_dt(rec["created_at"]) or _utc_now(),
+            valid_at=self._parse_dt(rec.get("valid_at")),
+            invalid_at=self._parse_dt(rec.get("invalid_at")),
+            expired_at=self._parse_dt(rec.get("expired_at")),
+            predicate=rec.get("name"),
+            provenance=tuple(rec.get("episodes") or ()),
+            metadata={
+                "group_id": rec.get("group_id"),
+                "source_node_uuid": rec.get("src"),
+                "target_node_uuid": rec.get("tgt"),
+            },
+        )
+
+    async def _fetch(self, where: str, **params: Any) -> list[Belief]:
+        query = "MATCH (a:Entity)-[r:RELATES_TO]->(b:Entity) " + where + self._AUDIT_RETURN
+        records, _, _ = await self._driver.execute_query(query, **params)
+        return [self._row_to_belief(rec) for rec in records]
+
+    async def event_time_query(
+        self, as_of: datetime, group_id: str | None = None
+    ) -> list[Belief]:
+        # Push the event-time predicate to the DB (this is what graphiti.search failed
+        # to do); the pure function is authoritative on the bounded set.
+        rows = await self._fetch(
+            "WHERE (r.valid_at IS NULL OR r.valid_at <= $t)", t=self._iso(as_of)
+        )
+        return _event_time_query(rows, as_of)
+
+    async def system_time_replay(
+        self, system_time: datetime, group_id: str | None = None
+    ) -> list[Belief]:
+        rows = await self._fetch("WHERE r.created_at <= $s", s=self._iso(system_time))
+        return _system_time_replay(rows, system_time)
+
+    async def bitemporal_query(
+        self, system_time: datetime, event_time: datetime, group_id: str | None = None
+    ) -> list[Belief]:
+        rows = await self._fetch("WHERE r.created_at <= $s", s=self._iso(system_time))
+        return _bitemporal_query(rows, system_time, event_time)
+
+    async def provenance_trace(
+        self, belief_id: str, group_id: str | None = None
+    ) -> ProvenanceTrace:
+        rows = await self._fetch("WHERE r.uuid = $uuid", uuid=belief_id)
+        if not rows:
+            return ProvenanceTrace(belief_id=belief_id)
+        belief = rows[0]
+        superseded_belief = superseded_episode = None
+        # Back-link strategy (T4, option a): no superseded_by is stored, so reconstruct
+        # the superseding fact by temporal join - the belief whose validity began
+        # exactly when this one ended (valid_at == this.invalid_at), ingested around
+        # this.expired_at.
+        if belief.invalid_at is not None:
+            candidates = await self._fetch(
+                "WHERE r.valid_at = $iv AND r.uuid <> $uuid",
+                iv=self._iso(belief.invalid_at),
+                uuid=belief_id,
+            )
+            if candidates:
+                anchor = belief.expired_at or belief.created_at
+                chosen = min(
+                    candidates,
+                    key=lambda c: abs((c.created_at - anchor).total_seconds()),
+                )
+                superseded_belief = chosen.id
+                superseded_episode = chosen.provenance[0] if chosen.provenance else None
+        return ProvenanceTrace(
+            belief_id=belief_id,
+            asserted_by=belief.provenance,
+            superseded_by_belief=superseded_belief,
+            superseded_by_episode=superseded_episode,
+            invalid_at=belief.invalid_at,
+            expired_at=belief.expired_at,
         )
 
     @staticmethod
