@@ -49,3 +49,11 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+  "integration: requires a running FalkorDB and an LLM key (skipped in CI)",
+]
+filterwarnings = [
+  # FalkorDB's async redis client can emit this on GC after the event loop
+  # closes on Windows; it is a harmless teardown artifact, not a test failure.
+  "ignore::pytest.PytestUnraisableExceptionWarning",
+]

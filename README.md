@@ -7,10 +7,14 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 0 — Foundations & contracts (the spine).**
-> Only the stable contracts, a no-op backend, the conformance harness, and CI exist.
-> Every actual feature (the Graphiti backend, the LlamaIndex bridge, the falsification
-> engine) is deliberately deferred to later phases.
+> **Status: Phase 1a (walking skeleton, substrate slice).**
+> Done: stable contracts, sync + async conformance harness, and the real
+> `GraphitiFalkorDBBackend` (AsyncSubstrate). THE heartbeat is proven against live
+> FalkorDB + an LLM: the same question at `as_of=T1` vs `as_of=T2` returns different
+> answers because a fact was superseded between them (see `examples/heartbeat_demo.py`
+> and `tests/integration/`).
+> Deferred: the LlamaIndex retriever/postprocessor/agent bridge (Phase 1b), plus
+> write-back, pluggable policies, replay API, verification, and advanced rerank.
 
 ## Design rule
 
