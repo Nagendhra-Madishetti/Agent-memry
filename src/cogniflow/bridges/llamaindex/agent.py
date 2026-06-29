@@ -22,13 +22,23 @@ from llama_index.llms.openai_like import OpenAILike
 
 from ...backends.graphiti_falkordb import GraphitiFalkorDBConfig
 from ...core.contracts import AsyncSubstrate
+from ...writeback import WriteBackQueue
 from .postprocessor import TemporalValidityPostprocessor
 from .retriever import TemporalGraphRetriever
+from .tools import make_record_observation_tool
 
 _SYSTEM_PROMPT = (
     "You answer questions about time-stamped facts. You MUST call the "
     "temporal_facts tool exactly once, then answer in one short sentence using "
     "only the fact it returns. If it returns nothing, say you do not know."
+)
+
+_RECORD_SYSTEM_PROMPT = (
+    "You record new time-stamped facts. When the user states a new fact, call the "
+    "record_observation tool exactly once with: a one-sentence statement, and when "
+    "they can be identified, subject, predicate, obj, and valid_at (a year or ISO "
+    "date). Then reply with the tool's acknowledgement. Do not answer from your own "
+    "knowledge."
 )
 
 
@@ -62,7 +72,12 @@ def build_temporal_agent(
     retriever = TemporalGraphRetriever(
         substrate, as_of=as_of, top_k=top_k, include_expired=include_expired
     )
-    postprocessor = TemporalValidityPostprocessor(as_of=as_of, include_expired=include_expired)
+    # P1: inject the substrate's own validity instance so both call sites share one object.
+    postprocessor = TemporalValidityPostprocessor(
+        validity_policy=getattr(substrate, "validity", None),
+        as_of=as_of,
+        include_expired=include_expired,
+    )
     tool = RetrieverTool.from_defaults(
         retriever=retriever,
         node_postprocessors=[postprocessor],
@@ -73,3 +88,14 @@ def build_temporal_agent(
         ),
     )
     return ReActAgent(tools=[tool], llm=llm, system_prompt=_SYSTEM_PROMPT)
+
+
+def build_recording_agent(
+    queue: WriteBackQueue,
+    group_id: str,
+    *,
+    llm: OpenAILike,
+) -> ReActAgent:
+    """An agent whose only tool is record_observation (seam d, the write half)."""
+    tool = make_record_observation_tool(queue, group_id)
+    return ReActAgent(tools=[tool], llm=llm, system_prompt=_RECORD_SYSTEM_PROMPT)

@@ -107,6 +107,25 @@ def test_postprocessor_excludes_invalidated_fact_after_supersession() -> None:
     assert kept == ["Acme Corp is headquartered in Denver"]
 
 
+def test_postprocessor_uses_injected_policy_instance() -> None:
+    # P1: the injected instance governs behavior (one instance, not one class).
+    class _AlwaysInvalid:
+        def is_valid(self, belief, as_of, include_expired=False) -> bool:
+            return False
+
+    policy = _AlwaysInvalid()
+    pp = TemporalValidityPostprocessor(validity_policy=policy, as_of=_dt(2020))
+    assert pp.validity is policy
+    assert pp.postprocess_nodes([_node(_boston())]) == []  # injected policy drops everything
+
+
+def test_postprocessor_defaults_when_no_policy_injected() -> None:
+    from cogniflow.core.policies import DefaultValidityPolicy
+
+    pp = TemporalValidityPostprocessor(as_of=_dt(2020))
+    assert isinstance(pp.validity, DefaultValidityPolicy)
+
+
 def test_retriever_async_override_runs_inside_event_loop() -> None:
     async def run() -> list[str]:
         retriever = TemporalGraphRetriever(_FakeSubstrate([_boston(), _denver()]), as_of=_dt(2020))

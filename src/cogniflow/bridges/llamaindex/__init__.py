@@ -11,13 +11,16 @@ Deferred to later phases: ``verify_fact`` / ``record_observation`` tools (seams 
 
 from __future__ import annotations
 
-from .agent import build_temporal_agent, make_llm
+from .agent import build_recording_agent, build_temporal_agent, make_llm
 from .postprocessor import TemporalValidityPostprocessor
 from .retriever import TemporalGraphRetriever
+from .tools import make_record_observation_tool
 
 __all__ = [
     "TemporalGraphRetriever",
     "TemporalValidityPostprocessor",
     "build_temporal_agent",
+    "build_recording_agent",
+    "make_record_observation_tool",
     "make_llm",
 ]

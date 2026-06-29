@@ -7,16 +7,18 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 1b (walking skeleton, through the agent path).**
-> Done: the substrate slice (1a) plus the LlamaIndex bridge. THE heartbeat now runs
-> end to end through a `ReActAgent` -> `TemporalGraphRetriever` (seam a) ->
-> `TemporalValidityPostprocessor` (seam b) -> substrate: the same question at
-> `as_of=2020` vs `as_of=2023` returns Boston vs Denver. One shared validity
-> definition (`core.policies`) governs both the substrate read and the postprocessor.
-> Note: the agent is a `ReActAgent` because the configured LLM (MiniMax-M3) emits no
-> native tool calls; FunctionAgent works if a function-calling model is configured.
-> Deferred: write-back (seam d), pluggable policies, replay API, inline verification
-> (seam c), advanced rerank.
+> **Status: Phase 2 (the loop closes - write-back).**
+> The agent's own action reshapes the memory it reads. Via a `record_observation`
+> tool, the agent enqueues a write that ingests asynchronously and automatically
+> falsifies what it contradicts; a later point-in-time read reflects the supersession.
+> Proven through the agent: record "Acme moved to Seattle, 2024", drain the queue, then
+> `as_of=2023` -> Denver and `as_of=2025` -> Seattle, with the Denver edge
+> auto-invalidated by ingestion (falsification is free). The production component is the
+> `WriteBackQueue` (`cogniflow/writeback.py`): per-`group_id` serial, concurrent across
+> groups, non-blocking enqueue, bounded backpressure (reject-with-signal), retry with
+> dead-letter, deterministic `drain()`, and a `last_ingested_at` freshness surface.
+> Deferred: pluggable policies (Phase 3), replay/audit API (Phase 4), inline
+> `verify_fact` (Phase 5), advanced rerank (Phase 5).
 
 ## Design rule
 

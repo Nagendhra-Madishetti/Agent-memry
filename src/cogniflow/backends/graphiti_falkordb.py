@@ -128,6 +128,12 @@ class GraphitiFalkorDBBackend:
             cross_encoder=OpenAIRerankerClient(config=llm_config),
         )
 
+    @property
+    def validity(self) -> ValidityPolicy:
+        """The shared validity policy instance (so the agent postprocessor can use
+        the same object, not a second copy). One instance, not merely one class."""
+        return self._validity
+
     async def setup(self) -> None:
         """Create indices/constraints. Idempotent; call once before use."""
         await self._graphiti.build_indices_and_constraints()

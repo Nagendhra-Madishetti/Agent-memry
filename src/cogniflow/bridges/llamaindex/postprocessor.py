@@ -9,11 +9,13 @@ this is defense in depth (same definition, two call sites), not a fork.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
+from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
 
-from ...core.policies import DefaultValidityPolicy
+from ...core.policies import DefaultValidityPolicy, ValidityPolicy
 from ...core.types import Belief, utc_now
 
 
@@ -36,10 +38,25 @@ def _node_to_belief(node_with_score: NodeWithScore) -> Belief:
 
 
 class TemporalValidityPostprocessor(BaseNodePostprocessor):
-    """Drop nodes not valid at the bound ``as_of``, using the shared ValidityPolicy."""
+    """Drop nodes not valid at the bound ``as_of``, using the shared ValidityPolicy.
+
+    The policy is *injected* (P1): pass the same instance the substrate uses so there
+    is one validity instance, not merely one class. If none is given it falls back to
+    a default, but the agent factory always injects ``substrate.validity``.
+    """
 
     as_of: datetime | None = None
     include_expired: bool = False
+
+    _validity: Any = PrivateAttr(default=None)
+
+    def __init__(self, validity_policy: ValidityPolicy | None = None, **data: Any) -> None:
+        super().__init__(**data)
+        self._validity = validity_policy
+
+    @property
+    def validity(self) -> ValidityPolicy:
+        return self._validity or DefaultValidityPolicy()
 
     @classmethod
     def class_name(cls) -> str:
@@ -50,7 +67,7 @@ class TemporalValidityPostprocessor(BaseNodePostprocessor):
         nodes: list[NodeWithScore],
         query_bundle: QueryBundle | None = None,
     ) -> list[NodeWithScore]:
-        policy = DefaultValidityPolicy()
+        policy = self.validity
         return [
             n
             for n in nodes
