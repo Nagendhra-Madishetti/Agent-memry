@@ -26,6 +26,7 @@ from .policies import (
     ValidityPolicy,
     WritebackPolicy,
     filter_valid,
+    rank_valid,
 )
 from .types import (
     Belief,
@@ -67,6 +68,7 @@ __all__ = [
     "NeverWritebackPolicy",
     "AlwaysWritebackPolicy",
     "filter_valid",
+    "rank_valid",
     # types
     "Belief",
     "Episode",

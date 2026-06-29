@@ -46,7 +46,10 @@ def _ensure_loaded() -> None:
     if _LOADED:
         return
     _LOADED = True
-    from . import core  # noqa: F401  (triggers cogniflow.core.policies registration)
+    from . import (
+        core,  # noqa: F401  (triggers cogniflow.core.policies registration)
+        verification,  # noqa: F401  (registers falsification: llm)
+    )
 
 
 def register_policy(family: str, name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

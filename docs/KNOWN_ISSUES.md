@@ -52,3 +52,35 @@ by `test_drain_waits_for_successful_retry`.
 **Follow-up (deferred):** back the queue with a durable log (e.g. Redis stream / a table)
 so "queued" survives restarts and dead-letters are recoverable. Tracked for the
 backend-hardening phase.
+
+## G4c - provenance back-link is reconstructed, not stored (ambiguity flag)
+
+`provenance_trace` does not read a stored `superseded_by`; Graphiti stamps `invalid_at`
+/ `expired_at` but no back-link. We reconstruct the superseding fact by a temporal join:
+the belief whose `valid_at == this.invalid_at`, ingested nearest `this.expired_at`. This
+is **ambiguous** when two different facts share that exact `valid_at` in the same window:
+the join can name the wrong superseding episode, which is a confident lie about causation
+(worse than no answer).
+
+**Pre-logged Phase-6 decision:** persist an explicit `superseded_by` (belief + episode)
+at write time, inside the contradiction-resolution step, so the trace reads a stored
+back-link instead of reconstructing one. Until then, treat `superseded_by_*` from
+`provenance_trace` as best-effort, and prefer it only when the temporal join is
+unambiguous.
+
+## Agent integration tests are best-effort under shared-endpoint load
+
+The agent-driven integration tests (e.g. `test_loop_closes_through_agent`) depend on the
+ReAct agent emitting a correctly-structured tool call, which is probabilistic (see the
+ReAct re-query constraint above). They pass in isolation and in light runs; in a single
+full integration run against a rate-limited shared LLM endpoint they can flake on
+cumulative load. They use bounded retries with backoff. CI never runs them (no FalkorDB /
+no key -> skipped), so CI is unaffected. Treat them as best-effort capability checks, not
+deterministic gates; the deterministic tests are the gates.
+
+## G4a - un-knowing assumption (single learned-at = expired_at)
+
+Replay's un-knowing assumes the only post-`created_at` system-time learning is the
+invalidation (stamped as `expired_at`); `valid_at` and the original `invalid_at` are
+assumed known at creation. A backend that revises those stamps after creation would need
+a per-stamp learned-at history. Documented in `core/audit.reconstruct_as_of_system`.

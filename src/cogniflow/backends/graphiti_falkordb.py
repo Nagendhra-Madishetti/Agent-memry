@@ -31,7 +31,7 @@ from graphiti_core.search.search_filters import ComparisonOperator, DateFilter, 
 from ..core.audit import bitemporal_query as _bitemporal_query
 from ..core.audit import event_time_query as _event_time_query
 from ..core.audit import system_time_replay as _system_time_replay
-from ..core.policies import ValidityPolicy, filter_valid
+from ..core.policies import RetrievalPolicy, ValidityPolicy, rank_valid
 from ..core.types import (
     Belief,
     Episode,
@@ -39,7 +39,6 @@ from ..core.types import (
     ProvenanceTrace,
     RetrievalQuery,
     RetrievalResult,
-    ScoredBelief,
     WriteReceipt,
 )
 from ..observability import log_read
@@ -65,6 +64,10 @@ class GraphitiFalkorDBConfig:
     # L3 policy selection by name (fail-loud via the registry).
     validity_policy: str = "strict"
     validity_params: dict[str, Any] = field(default_factory=dict)
+    # Reranking is OFF by default ("default" = passthrough). Opt in per deployment
+    # (e.g. "recency"); validity-filtering always runs first (see read()).
+    retrieval_policy: str = "default"
+    retrieval_params: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_env(cls, group_id: str = "cogniflow") -> GraphitiFalkorDBConfig:
@@ -127,6 +130,12 @@ class GraphitiFalkorDBBackend:
         self._validity: ValidityPolicy = validity or create_policy(
             "validity", config.validity_policy, **config.validity_params
         )
+        self._retrieval: RetrievalPolicy = create_policy(
+            "retrieval", config.retrieval_policy, **config.retrieval_params
+        )
+        # Write listeners (e.g. a CachingAuditLedger.note_write) fire after each write
+        # so current-knowledge cache entries for the group are invalidated.
+        self._write_listeners: list[Any] = []
         self._driver = FalkorDriver(host=config.host, port=config.port, database=config.group_id)
         llm_config = LLMConfig(
             api_key=config.llm_api_key,
@@ -145,6 +154,11 @@ class GraphitiFalkorDBBackend:
         """The shared validity policy instance (so the agent postprocessor can use
         the same object, not a second copy). One instance, not merely one class."""
         return self._validity
+
+    def add_write_listener(self, listener: Any) -> None:
+        """Register a callback ``listener(group_id)`` fired after each write (e.g. a
+        CachingAuditLedger.note_write, to invalidate current-knowledge cache entries)."""
+        self._write_listeners.append(listener)
 
     async def setup(self) -> None:
         """Create indices/constraints. Idempotent; call once before use."""
@@ -172,9 +186,17 @@ class GraphitiFalkorDBBackend:
         Both run Graphiti's dedup + temporal invalidation.
         """
         triple = (episode.metadata or {}).get("triple")
-        if triple:
-            return await self._write_triplet(episode, triple)
-        return await self._write_episode(episode)
+        receipt = (
+            await self._write_triplet(episode, triple)
+            if triple
+            else await self._write_episode(episode)
+        )
+        for listener in self._write_listeners:
+            try:
+                listener(self.group_id)
+            except Exception:
+                pass
+        return receipt
 
     async def _write_episode(self, episode: Episode) -> WriteReceipt:
         result = await self._graphiti.add_episode(
@@ -232,8 +254,9 @@ class GraphitiFalkorDBBackend:
         # the single shared ValidityPolicy, then truncate to top_k. This is the
         # invariant the heartbeat depends on, and it recovers valid-at-T facts
         # that were ranked outside a naive top_k window.
-        kept = filter_valid(beliefs, query.as_of, query.include_expired, self._validity)
-        results = tuple(ScoredBelief(belief=b) for b in kept[: query.top_k])
+        # Pipeline order (T4): validity-filter (deterministic) BEFORE rank (opt-in,
+        # possibly expensive), then truncate. Reranking never runs on invalid facts.
+        results = tuple(rank_valid(beliefs, query, self._validity, self._retrieval))
         log_read(query.text, query.as_of, len(beliefs), len(results))
         return RetrievalResult(query=query, results=results, as_of=query.as_of)
 

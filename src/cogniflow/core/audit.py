@@ -62,6 +62,15 @@ def reconstruct_as_of_system(belief: Belief, system_time: datetime) -> Belief:
     ``invalid_at`` with no recorded learning time), un-know it: drop ``invalid_at``
     and ``expired_at`` for this replay, so the belief reads live and un-superseded
     from S's vantage. If the invalidation was already known by S, keep it.
+
+    ASSUMPTION (G4a): this treats ``expired_at`` as the single learned-at timestamp,
+    i.e. the only system-time learning after a belief's ``created_at`` is its
+    invalidation. ``valid_at`` and the original ``invalid_at`` are assumed known at
+    ``created_at``. A backend that *revises* ``valid_at``/``invalid_at`` after creation
+    (not just stamps an invalidation) would need a per-stamp learned-at history to
+    replay correctly; this reconstruction would silently show post-S revisions. The
+    Graphiti backend stamps invalidation atomically and does not revise prior stamps,
+    so the assumption holds there. Revisit if a backend violates it.
     """
     expired = belief.expired_at
     if expired is not None and expired <= system_time:

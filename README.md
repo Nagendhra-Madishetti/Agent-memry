@@ -7,19 +7,20 @@ superseded beliefs → persist the verdict → reshape the next retrieval.
 
 This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a library.
 
-> **Status: Phase 4 (the audit / replay layer - the differentiator as infrastructure).**
-> The dual-axis bi-temporal model is now a real, headless audit surface (`AuditLedger`,
-> an opt-in read-only capability separate from the substrate): event-time ("what was true
-> in the world at T"), system-time replay ("what did the system believe at S"), the
-> bitemporal point query ("believed at S about world-time T"), and a provenance trace.
-> The centerpiece is the **un-knowing** invariant: a replay to S un-knows any invalidation
-> the system learned after S, so a fact superseded later reads as live-and-un-superseded
-> from S's vantage - never leaking knowledge backward in time. Replay is **not search**:
-> it pushes the temporal predicate straight into Cypher (resolving the long-tracked
-> FalkorDriver `search_filter` no-op) and never over-fetches history. Replay is fully
-> deterministic (no LLM) and is the most heavily invariant-tested surface in the project.
-> Deferred: LLM-driven `verify_fact` (Phase 5), advanced rerank + replay caching (Phase 5),
-> replay UI (separate optional package), multi-backend (Phase 6).
+> **Status: Phase 5 (inline verification + advanced retrieval - the opt-in probabilistic tier).**
+> The expensive, opt-in capabilities are in, structurally fenced off from the deterministic
+> ledger. `verify_fact` is the LLM `FalsificationPolicy` (registry `falsification: llm`) plus
+> a tool: **read-only and advisory** - it returns a verdict and never writes (acting on it
+> routes through the existing queued write-back). It is **bounded**: timeout, defined
+> fallback, and a distinguishable *indeterminate* verdict; any failure degrades to
+> indeterminate, never a confident clean and never a mutation. Its reliability is **measured**
+> (precision/recall on a labeled set via `cogniflow.eval`), not asserted by one green run.
+> Retrieval ranking is opt-in and default-off, with **validity-filter before rank** (a
+> correctness decision). Point-in-time caching is **dual-axis**: frozen past-S replays cache
+> permanently; current-knowledge event-time invalidates on write. R1: no function-calling
+> model is configured, so the agent stays ReAct and that re-query reliability is documented.
+> Deferred to Phase 6: multi-backend (Neo4j parity), persist `superseded_by`, scale/partition,
+> non-OpenAI swap verification. Replay UI stays a separate optional package.
 
 ## Design rule
 

@@ -155,6 +155,28 @@ def filter_valid(
     return [b for b in beliefs if policy.is_valid(b, as_of, include_expired)]
 
 
+def rank_valid(
+    beliefs: Sequence[Belief],
+    query: RetrievalQuery,
+    validity: ValidityPolicy | None = None,
+    retrieval: RetrievalPolicy | None = None,
+) -> list[ScoredBelief]:
+    """The retrieval pipeline, in correctness-gates-relevance order:
+
+    validity-filter (cheap, deterministic) -> rank the survivors (expensive,
+    possibly probabilistic) -> truncate to top_k.
+
+    Reranking never runs on temporally-invalid facts, so a high-relevance-but-invalid
+    fact can neither consume the rerank budget nor be resurrected by it. This ordering
+    is a correctness decision, not a preference.
+    """
+    validity = validity or DefaultValidityPolicy()
+    retrieval = retrieval or DefaultRetrievalPolicy()
+    valid = filter_valid(beliefs, query.as_of, query.include_expired, validity)
+    ranked = list(retrieval.rank(query, valid))
+    return ranked[: query.top_k]
+
+
 @register_policy("falsification", "none")
 class NoFalsificationPolicy:
     """Never supersedes anything."""

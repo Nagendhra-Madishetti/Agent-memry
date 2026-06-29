@@ -13,6 +13,9 @@ from datetime import datetime, timezone
 
 from llama_index.core.tools import FunctionTool
 
+from ...core.contracts import AsyncSubstrate
+from ...core.policies import FalsificationPolicy
+from ...core.types import Belief, RetrievalQuery, utc_now
 from ...writeback import Observation, WriteBackQueue
 
 
@@ -76,5 +79,50 @@ def make_record_observation_tool(queue: WriteBackQueue, group_id: str) -> Functi
         description=(
             "Record a new time-stamped fact. Enqueues a write and returns immediately; "
             "the fact becomes readable after ingestion."
+        ),
+    )
+
+
+def make_verify_fact_tool(substrate: AsyncSubstrate, policy: FalsificationPolicy) -> FunctionTool:
+    """Build a read-only ``verify_fact`` tool (Phase 5, seam c).
+
+    It reads candidate beliefs and runs the (LLM) FalsificationPolicy to advise whether
+    a stated fact is contradicted/superseded. It NEVER writes: to record a correction
+    the agent must call ``record_observation`` (the queued write-back path). An
+    indeterminate verdict is surfaced as such, never as "not contradicted".
+    """
+
+    async def verify_fact(
+        statement: str,
+        subject: str = "",
+        predicate: str = "",
+        obj: str = "",
+        valid_at: str = "",
+    ) -> str:
+        """Check (read-only) whether a stated fact is contradicted or superseded by known
+        beliefs. Advisory only; this does NOT record anything."""
+        target = Belief(
+            id="__verify__",
+            statement=statement,
+            created_at=utc_now(),
+            valid_at=_parse_when(valid_at),
+        )
+        result = await substrate.read(
+            RetrievalQuery(text=statement, as_of=None, top_k=10, include_expired=True)
+        )
+        candidates = [s.belief for s in result.results]
+        verdict = policy.assess(target, candidates)
+        if verdict.indeterminate:
+            return f"indeterminate: {verdict.rationale}"
+        if verdict.superseded:
+            return f"contradicted (superseded_by={verdict.superseded_by}): {verdict.rationale}"
+        return f"not contradicted: {verdict.rationale}"
+
+    return FunctionTool.from_defaults(
+        fn=verify_fact,
+        name="verify_fact",
+        description=(
+            "Check (read-only) whether a stated fact is contradicted or superseded by "
+            "known beliefs. Advisory; records nothing."
         ),
     )

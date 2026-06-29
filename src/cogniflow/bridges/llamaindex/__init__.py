@@ -14,7 +14,7 @@ from __future__ import annotations
 from .agent import build_recording_agent, build_temporal_agent, make_llm
 from .postprocessor import TemporalValidityPostprocessor
 from .retriever import TemporalGraphRetriever
-from .tools import make_record_observation_tool
+from .tools import make_record_observation_tool, make_verify_fact_tool
 
 __all__ = [
     "TemporalGraphRetriever",
@@ -22,5 +22,6 @@ __all__ = [
     "build_temporal_agent",
     "build_recording_agent",
     "make_record_observation_tool",
+    "make_verify_fact_tool",
     "make_llm",
 ]

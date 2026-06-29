@@ -113,7 +113,8 @@ def test_loop_closes_through_agent() -> None:
 
             recorder = build_recording_agent(queue, group, llm=llm)
             landed = False
-            for _ in range(3):
+            attempts = 5
+            for attempt in range(attempts):
                 await recorder.run(
                     user_msg="Acme Corp moved its headquarters to Seattle, effective 2024."
                 )
@@ -124,8 +125,8 @@ def test_loop_closes_through_agent() -> None:
                 if any("Seattle" in s.belief.statement for s in check.results):
                     landed = True
                     break
-                await asyncio.sleep(2)  # small backoff between probabilistic attempts
-            assert landed, "recording agent did not land the Seattle fact within 3 attempts"
+                await asyncio.sleep(3 * (attempt + 1))  # backoff (also dodges rate limits)
+            assert landed, f"recording agent did not land the Seattle fact in {attempts} attempts"
 
             # acceptance #1: the loop closed - the agent's own WRITE reshaped what a
             # point-in-time read returns. The read side is verified deterministically via
