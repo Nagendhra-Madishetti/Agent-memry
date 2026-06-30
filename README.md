@@ -61,6 +61,21 @@ This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a librar
 > floor ships in every response's `notes`. See [docs/CONTEXT_API.md](docs/CONTEXT_API.md).
 > (The human/compliance audit dashboard is the separate Slice B.)
 
+> **Product layer - Slice B (the audit/replay dashboard: the moat made visible).** A
+> **read-only** window onto the belief ledger for a human (`cogniflow.serving.create_audit_app`,
+> `[serve]` extra, self-hostable): current beliefs, the **event-time** axis (what was true at
+> T - scrub April->7-day, July->28-day), the **system-time replay** scrubber (what the system
+> *knew* at S), and provenance traces - over the four `AuditLedger` methods, no write verb
+> exposed. **The centerpiece is the un-knowing made visible:** scrubbed to before a
+> supersession, a fact reads believed-then and un-superseded, never with its current
+> `invalid_at` - the engine un-knows and the UI renders only what it returns, so present
+> knowledge cannot leak backward (asserted by the hardest test in the slice). Provenance
+> resolves the episode UUID to the human-readable document name from stored linkage
+> (G1) - an unresolvable UUID is shown as a UUID, never guessed - and each fact shows its
+> `valid_at_source` confidence. This is the one screen no plain RAG can build, because it is
+> driven by system-time replay nobody else has. See
+> [docs/AUDIT_DASHBOARD.md](docs/AUDIT_DASHBOARD.md).
+
 ## Design rule
 
 The **core is dependency-free**. `cogniflow.core` imports nothing but the standard

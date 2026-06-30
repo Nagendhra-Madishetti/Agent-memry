@@ -486,6 +486,36 @@ class GraphitiFalkorDBBackend:
             expired_at=belief.expired_at,
         )
 
+    async def get_belief(self, belief_id: str, group_id: str | None = None) -> Belief | None:
+        """Fetch a single belief by id with its TRUE stored intervals (read-only). Used by
+        the audit timeline view; unlike replay it does not reconstruct, so the current
+        invalid_at is shown for the live timeline."""
+        rows = await self._fetch("WHERE r.uuid = $uuid", uuid=belief_id)
+        return rows[0] if rows else None
+
+    async def resolve_episodes(
+        self, episode_uuids: Sequence[str], group_id: str | None = None
+    ) -> dict[str, str]:
+        """Resolve provenance episode UUIDs to their human-readable names (G1).
+
+        From the stored Episodic linkage only - never a heuristic. A UUID with no stored
+        Episodic node is simply absent from the result, so the caller shows the UUID rather
+        than guessing a name (a wrong source name is worse than an opaque one).
+        """
+        ids = [u for u in dict.fromkeys(episode_uuids) if u]
+        if not ids:
+            return {}
+        records, _, _ = await self._driver.execute_query(
+            "MATCH (e:Episodic) WHERE e.uuid IN $ids RETURN e.uuid AS uuid, e.name AS name",
+            ids=ids,
+        )
+        resolved: dict[str, str] = {}
+        for rec in records:
+            uuid, name = rec["uuid"], rec["name"]
+            if uuid and name:
+                resolved[uuid] = name
+        return resolved
+
     @staticmethod
     def _as_of_filter(as_of: datetime | None) -> SearchFilters:
         """Compile point-in-time semantics: valid_at <= T AND (invalid_at IS NULL OR

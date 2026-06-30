@@ -7,7 +7,7 @@ the core library carries no web/agent framework dependency.
 
 from __future__ import annotations
 
-__all__ = ["create_app", "build_mcp_server"]
+__all__ = ["create_app", "build_mcp_server", "create_audit_app"]
 
 
 def __getattr__(name: str):  # lazy: importing serving must not require the optional extras
@@ -19,4 +19,8 @@ def __getattr__(name: str):  # lazy: importing serving must not require the opti
         from .mcp_server import build_mcp_server
 
         return build_mcp_server
+    if name == "create_audit_app":
+        from .audit import create_audit_app
+
+        return create_audit_app
     raise AttributeError(name)
