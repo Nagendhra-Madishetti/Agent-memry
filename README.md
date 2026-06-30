@@ -76,6 +76,17 @@ This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a librar
 > driven by system-time replay nobody else has. See
 > [docs/AUDIT_DASHBOARD.md](docs/AUDIT_DASHBOARD.md).
 
+> **Embedder plug - config-selected, fail-loud, bring-your-own.** The embedder is a
+> pluggable layer (`cogniflow.backends.embedders`): `embedder: "hash" | "bge-m3" |
+> "nvidia-e5"` by **config, not code**. The key-free **hash embedder stays the default**
+> (correctness tests don't depend on embeddings and stay deterministic); a real NVIDIA-API
+> embedder (default `baai/bge-m3`, the self-hosted production target) is opt-in via
+> `COGNIFLOW_EMBEDDER_API_KEY`. Two load-bearing guards: it **fails loud** - a missing key,
+> unknown name, or license-excluded model (`nvidia/nv-embed-v1`) raises at startup and
+> **never silently falls back to meaning-blind hash retrieval** - and the **dimension travels
+> with the embedder** and is validated against the store, hard-crashing on mismatch rather
+> than corrupting the vector space. See [docs/EMBEDDERS.md](docs/EMBEDDERS.md).
+
 ## Design rule
 
 The **core is dependency-free**. `cogniflow.core` imports nothing but the standard

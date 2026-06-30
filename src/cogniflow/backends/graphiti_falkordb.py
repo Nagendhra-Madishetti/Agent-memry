@@ -44,7 +44,7 @@ from ..core.types import (
 )
 from ..observability import log_read
 from ..registry import create_policy
-from ._local_embedder import LocalDeterministicEmbedder
+from .embedders import check_embedding_dimension, create_embedder
 
 
 def _utc_now() -> datetime:
@@ -62,6 +62,13 @@ class GraphitiFalkorDBConfig:
     llm_base_url: str | None = None
     llm_model: str | None = None
     embedding_dim: int = 1024
+    # Embedder selection (config-driven, fail-loud via the embedder registry). Default
+    # "hash" = the key-free, non-semantic LocalDeterministicEmbedder. Real embedders
+    # ("bge-m3", "nvidia-e5") are opt-in and require COGNIFLOW_EMBEDDER_API_KEY.
+    embedder: str = "hash"
+    embedder_model: str | None = None
+    embedder_api_key: str | None = None
+    embedder_base_url: str | None = None
     # L3 policy selection by name (fail-loud via the registry).
     validity_policy: str = "strict"
     validity_params: dict[str, Any] = field(default_factory=dict)
@@ -91,6 +98,10 @@ class GraphitiFalkorDBConfig:
             llm_api_key=os.getenv("COGNIFLOW_LLM_API_KEY"),
             llm_base_url=os.getenv("COGNIFLOW_LLM_BASE_URL"),
             llm_model=os.getenv("COGNIFLOW_LLM_MODEL"),
+            embedder=os.getenv("COGNIFLOW_EMBEDDER", "hash"),
+            embedder_model=os.getenv("COGNIFLOW_EMBEDDER_MODEL"),
+            embedder_api_key=os.getenv("COGNIFLOW_EMBEDDER_API_KEY"),
+            embedder_base_url=os.getenv("COGNIFLOW_EMBEDDER_BASE_URL"),
         )
 
 
@@ -165,10 +176,19 @@ class GraphitiFalkorDBBackend:
             base_url=config.llm_base_url,
             model=config.llm_model,
         )
+        # Config-selected embedder (fail-loud; never a silent hash fallback). The dimension
+        # travels with the embedder and is validated against the store in setup().
+        self._embedder = create_embedder(
+            config.embedder,
+            api_key=config.embedder_api_key,
+            model=config.embedder_model,
+            base_url=config.embedder_base_url,
+            embedding_dim=config.embedding_dim,
+        )
         self._graphiti = Graphiti(
             graph_driver=self._driver,
             llm_client=OpenAIGenericClient(config=llm_config),
-            embedder=LocalDeterministicEmbedder(config.embedding_dim),
+            embedder=self._embedder,
             cross_encoder=OpenAIRerankerClient(config=llm_config),
         )
 
@@ -184,8 +204,29 @@ class GraphitiFalkorDBBackend:
         self._write_listeners.append(listener)
 
     async def setup(self) -> None:
-        """Create indices/constraints. Idempotent; call once before use."""
+        """Create indices/constraints. Idempotent; call once before use.
+
+        Validates the selected embedder's dimension against any vectors already in the store
+        and hard-crashes on a mismatch (safety property B) before building indices, so a
+        dimension change is caught at startup rather than silently corrupting the space."""
+        check_embedding_dimension(await self._detect_store_dim(), self._embedder.embedding_dim)
         await self._graphiti.build_indices_and_constraints()
+
+    async def _detect_store_dim(self) -> int | None:
+        """Best-effort: the dimension of vectors already in the store, or None if the store
+        is empty or the dimension can't be determined (then there is nothing to corrupt)."""
+        try:
+            records, _, _ = await self._driver.execute_query(
+                "MATCH ()-[r:RELATES_TO]->() WHERE r.fact_embedding IS NOT NULL "
+                "RETURN size(r.fact_embedding) AS dim LIMIT 1"
+            )
+        except Exception:
+            return None
+        for rec in records:
+            dim = rec["dim"]
+            if isinstance(dim, int) and dim > 0:
+                return dim
+        return None
 
     async def close(self) -> None:
         await self._graphiti.close()
