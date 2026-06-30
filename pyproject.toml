@@ -30,6 +30,8 @@ llamaindex = ["llama-index-core==0.14.23", "llama-index-llms-openai-like>=0.4,<1
 falkordb = ["falkordb>=1.0.10,<2"]
 observability = ["langfuse>=2,<4"]
 okf = ["pyyaml>=6,<7"]
+documents = ["pypdf>=4,<6"]
+mineru = ["mineru"]
 backends = ["graphiti-core==0.29.2", "falkordb>=1.0.10,<2"]
 all = [
   "graphiti-core==0.29.2",
@@ -37,8 +39,9 @@ all = [
   "llama-index-llms-openai-like>=0.4,<1",
   "falkordb>=1.0.10,<2",
   "pyyaml>=6,<7",
+  "pypdf>=4,<6",
 ]
-dev = ["pytest>=8,<9", "ruff>=0.6,<1", "pyyaml>=6,<7"]
+dev = ["pytest>=8,<9", "ruff>=0.6,<1", "pyyaml>=6,<7", "pypdf>=4,<6"]
 
 [project.urls]
 Homepage = "https://github.com/Nagendhra-web/cogniflow"

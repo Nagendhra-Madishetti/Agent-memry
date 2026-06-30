@@ -31,6 +31,22 @@ This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a librar
 > RAG returns the stale 7-day definition; Cogniflow returns the current 28-day one and
 > replays the 7-day one for `as_of=March`.** The win is temporal correctness, not recall.
 
+> **Product layer - Slice A.2 (the second front door: any document in).** Beyond OKF,
+> Cogniflow ingests plain text, markdown, and **PDFs** (`cogniflow.documents`) through the
+> *same* Episode/`write` path - parse -> structure-preserving chunks -> Episodes, no core
+> changes. The parser is pluggable (`DocumentParser`): pypdf is the default behind the
+> `[documents]` extra, MinerU is the documented production adapter behind `[mineru]`;
+> heavy deps are never core. **ColPali / image-indexing is deliberately out** - you cannot
+> attach a validity interval to a page-image embedding, and the temporal layer needs facts
+> (see [docs/DOCUMENT_INGESTION.md](docs/DOCUMENT_INGESTION.md)). Cross-version
+> supersession is free: re-ingesting an updated document stamps the old fact with both
+> `invalid_at` and `expired_at`. The PDF head-to-head (`demo/doc_head_to_head.py`, two
+> report versions, HQ Boston->Denver) shows the structural win: plain RAG has **no as-of
+> axis** and cannot answer "as of 2020" at all; Cogniflow returns the current fact for now
+> and replays the old one for the past. Document fact-extraction is honest about its limit
+> - reliable for concrete statements, weak for abstract prose; structured input (OKF's
+> `fact` key) remains the deterministic path.
+
 ## Design rule
 
 The **core is dependency-free**. `cogniflow.core` imports nothing but the standard
