@@ -12,13 +12,13 @@ export const site = {
 } as const;
 
 export const chartColors = {
-  brand: "#35e6c0",   // Cogniflow
-  brand2: "#7c74ff",
-  plain: "#8b93a5",   // the "other" system - neutral slate, distinct from brand mint
+  brand: "#4fe3c4",   // Cogniflow (aqua-mint)
+  brand2: "#8b7cff",  // violet
+  plain: "#8b95c9",   // the "other" system - lavender-slate, distinct from brand mint
   win: "#56d39a",
-  warn: "#e2c04b",
-  miss: "#5b6472",
-  danger: "#e0707e",
-  grid: "#232b38",
-  text: "#97a1b2",
+  warn: "#f2c14e",
+  miss: "#6b77a8",
+  danger: "#ff6b8a",
+  grid: "#2a3366",
+  text: "#9aa6d6",
 } as const;

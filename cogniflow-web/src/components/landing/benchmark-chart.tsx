@@ -38,10 +38,10 @@ export function BenchmarkChart({ data }: { data: PanelDatum[] }) {
           <Tooltip
             cursor={{ fill: "rgba(255,255,255,0.03)" }}
             contentStyle={{
-              background: "#12151c",
+              background: "#1a2147",
               border: `1px solid ${chartColors.grid}`,
               borderRadius: 12,
-              color: "#e9edf4",
+              color: "#eaf0ff",
               fontSize: 13,
             }}
             formatter={(value, name) =>

@@ -9,54 +9,55 @@
   Semantics reuse the audit-dashboard language: win=mint, derived=amber, miss=slate.
 */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.85rem;
 
-  --background: #090b10;
-  --foreground: #e9edf4;
+  /* Aurora Indigo - deep indigo-navy base (not black), aqua-mint + violet accents. */
+  --background: #0e1330;
+  --foreground: #eaf0ff;
 
-  --card: #11141c;
-  --card-foreground: #e9edf4;
-  --popover: #14171f;
-  --popover-foreground: #e9edf4;
+  --card: #161c3d;
+  --card-foreground: #eaf0ff;
+  --popover: #1a2147;
+  --popover-foreground: #eaf0ff;
 
-  --primary: #35e6c0;            /* aqua/mint - the brand */
-  --primary-foreground: #04231d;
-  --secondary: #1a1f29;
-  --secondary-foreground: #e9edf4;
-  --muted: #151922;
-  --muted-foreground: #97a1b2;
-  --accent: #1d2431;
-  --accent-foreground: #e9edf4;
-  --destructive: #e0707e;
-  --destructive-foreground: #1a0508;
+  --primary: #4fe3c4;            /* aqua/mint - the brand */
+  --primary-foreground: #052a22;
+  --secondary: #1e2650;
+  --secondary-foreground: #eaf0ff;
+  --muted: #1a2044;
+  --muted-foreground: #9aa6d6;
+  --accent: #232c5c;
+  --accent-foreground: #eaf0ff;
+  --destructive: #ff6b8a;
+  --destructive-foreground: #2a0810;
 
-  --border: #232b38;
-  --input: #232b38;
-  --ring: #35e6c0;
+  --border: #2a3366;
+  --input: #2a3366;
+  --ring: #4fe3c4;
 
   /* brand + semantic (custom) */
-  --brand: #35e6c0;
-  --brand-2: #7c74ff;           /* indigo/violet - depth in the mesh */
-  --brand-3: #22d3ee;           /* cyan */
+  --brand: #4fe3c4;             /* aqua-mint */
+  --brand-2: #8b7cff;           /* violet - the aurora depth */
+  --brand-3: #58c7ff;           /* cyan */
   --win: #56d39a;
-  --warn: #e2c04b;
-  --miss: #5b6472;
-  --danger: #e0707e;
+  --warn: #f2c14e;
+  --miss: #6b77a8;
+  --danger: #ff6b8a;
 
-  --chart-1: #35e6c0;
-  --chart-2: #7c74ff;
-  --chart-3: #e2c04b;
-  --chart-4: #5b6472;
-  --chart-5: #22d3ee;
+  --chart-1: #4fe3c4;
+  --chart-2: #8b7cff;
+  --chart-3: #f2c14e;
+  --chart-4: #6b77a8;
+  --chart-5: #58c7ff;
 
-  --sidebar: #0d1016;
-  --sidebar-foreground: #e9edf4;
-  --sidebar-primary: #35e6c0;
-  --sidebar-primary-foreground: #04231d;
-  --sidebar-accent: #1d2431;
-  --sidebar-accent-foreground: #e9edf4;
-  --sidebar-border: #232b38;
-  --sidebar-ring: #35e6c0;
+  --sidebar: #0c1029;
+  --sidebar-foreground: #eaf0ff;
+  --sidebar-primary: #4fe3c4;
+  --sidebar-primary-foreground: #052a22;
+  --sidebar-accent: #232c5c;
+  --sidebar-accent-foreground: #eaf0ff;
+  --sidebar-border: #2a3366;
+  --sidebar-ring: #4fe3c4;
 }
 
 @theme inline {
@@ -147,9 +148,10 @@
   .mesh-bg {
     background-color: var(--background);
     background-image:
-      radial-gradient(46rem 32rem at 12% -8%, color-mix(in oklab, var(--brand) 20%, transparent), transparent 60%),
-      radial-gradient(40rem 30rem at 100% 0%, color-mix(in oklab, var(--brand-2) 22%, transparent), transparent 58%),
-      radial-gradient(48rem 36rem at 84% 108%, color-mix(in oklab, var(--brand-3) 14%, transparent), transparent 60%);
+      radial-gradient(48rem 34rem at 8% -10%, color-mix(in oklab, var(--brand) 26%, transparent), transparent 60%),
+      radial-gradient(44rem 32rem at 104% -4%, color-mix(in oklab, var(--brand-2) 32%, transparent), transparent 58%),
+      radial-gradient(52rem 40rem at 88% 112%, color-mix(in oklab, var(--brand-3) 20%, transparent), transparent 60%),
+      radial-gradient(40rem 34rem at 30% 118%, color-mix(in oklab, var(--brand-2) 16%, transparent), transparent 62%);
     background-repeat: no-repeat;
   }
   .grid-overlay {
@@ -173,7 +175,7 @@
                 0 20px 60px -30px color-mix(in oklab, var(--brand) 40%, transparent);
   }
   .text-gradient {
-    background: linear-gradient(100deg, #eafff9 0%, var(--brand) 55%, var(--brand-3) 100%);
+    background: linear-gradient(100deg, #ffffff 0%, var(--brand) 50%, var(--brand-3) 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
