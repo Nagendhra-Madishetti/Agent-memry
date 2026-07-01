@@ -32,7 +32,7 @@ observability = ["langfuse>=2,<4"]
 okf = ["pyyaml>=6,<7"]
 documents = ["pypdf>=4,<6"]
 mineru = ["mineru"]
-serve = ["fastapi>=0.110,<1", "uvicorn>=0.27,<1"]
+serve = ["fastapi>=0.110,<1", "uvicorn>=0.27,<1", "python-multipart>=0.0.9"]
 mcp = ["mcp>=1,<2"]
 reranker = ["FlagEmbedding>=1.2"]  # self-hosted bge-reranker-v2-m3 (pulls torch); opt-in
 backends = ["graphiti-core==0.29.2", "falkordb>=1.0.10,<2"]
