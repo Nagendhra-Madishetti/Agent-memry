@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  AlertTriangle,
   ArrowDownUp,
   Check,
   Clock,
@@ -11,6 +10,7 @@ import {
   FileCheck2,
   FileText,
   Filter,
+  Info,
   Loader2,
   MessageSquareText,
   RotateCcw,
@@ -27,6 +27,7 @@ import {
   type Health,
   type ServedFact,
 } from "@/lib/api";
+import { mockAnswer, mockContext, type MockFact } from "@/lib/mock";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ export default function Playground() {
   const [title, setTitle] = useState("");
   const [docDate, setDocDate] = useState("");
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mock = useRef<MockFact[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -81,6 +83,7 @@ export default function Playground() {
         setSid(s);
       } catch {
         setHealthErr(true);
+        setSid("browser"); // browser demo mode — handlers use the in-browser engine
       }
     })();
     return () => {
@@ -103,6 +106,12 @@ export default function Playground() {
 
   const loadDemo = useCallback(async () => {
     if (!sid) return;
+    if (down) {
+      DEMO.forEach((x, i) => mock.current.push({ id: `${x.t}-${i}`, statement: x.d, valid_from: x.when, title: x.t }));
+      setDocs((d) => [...DEMO.map((x) => ({ name: x.t, created: 1, superseded: 0 })), ...d]);
+      toast.success("Demo loaded (browser mode) — set the as-of date to 2013 vs now.");
+      return;
+    }
     setBusy("demo");
     try {
       const added: Doc[] = [];
@@ -117,11 +126,15 @@ export default function Playground() {
     } finally {
       setBusy(null);
     }
-  }, [sid]);
+  }, [sid, down]);
 
   const onFile = useCallback(
     async (f: File) => {
       if (!sid) return;
+      if (down) {
+        toast.info("Browser demo mode: paste a fact or load the demo. Start the API to ingest PDFs.");
+        return;
+      }
       setBusy("upload");
       try {
         const r = await api.ingestFile(sid, f, docDate ? new Date(docDate).toISOString() : undefined);
@@ -133,11 +146,19 @@ export default function Playground() {
         setBusy(null);
       }
     },
-    [sid, docDate],
+    [sid, docDate, down],
   );
 
   const addText = useCallback(async () => {
     if (!sid || !text.trim()) return;
+    if (down) {
+      mock.current.push({ id: `${title || "note"}-${mock.current.length}`, statement: text, valid_from: docDate || "2000-01-01", title: title || "note" });
+      setDocs((d) => [{ name: title || "note", created: 1, superseded: 0 }, ...d]);
+      setText("");
+      setTitle("");
+      toast.success("Added (browser mode)");
+      return;
+    }
     setBusy("text");
     try {
       const r = await api.ingestText(sid, text, title || "note", docDate ? new Date(docDate).toISOString() : undefined);
@@ -150,7 +171,7 @@ export default function Playground() {
     } finally {
       setBusy(null);
     }
-  }, [sid, text, title, docDate]);
+  }, [sid, text, title, docDate, down]);
 
   const ask = useCallback(
     async (mode: "answer" | "context") => {
@@ -158,6 +179,20 @@ export default function Playground() {
       setBusy(mode);
       setAnswer(null);
       startPipeline();
+      if (down) {
+        setTimeout(() => {
+          if (mode === "answer") {
+            const r = mockAnswer(mock.current, query, asOfValue);
+            setAnswer(r);
+            setFacts(r.facts);
+          } else {
+            setFacts(mockContext(mock.current, query, asOfValue).facts);
+          }
+          finishPipeline();
+          setBusy(null);
+        }, 1400);
+        return;
+      }
       try {
         if (mode === "answer") {
           const r = await api.answer(sid, query, asOfValue);
@@ -176,18 +211,19 @@ export default function Playground() {
         setBusy(null);
       }
     },
-    [sid, query, asOfValue],
+    [sid, query, asOfValue, down],
   );
 
   const reset = useCallback(async () => {
     if (!sid) return;
-    await api.reset(sid).catch(() => {});
+    mock.current = [];
+    if (!down) await api.reset(sid).catch(() => {});
     setDocs([]);
     setFacts([]);
     setAnswer(null);
     setStage(-1);
     toast.success("Session reset");
-  }, [sid]);
+  }, [sid, down]);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
@@ -200,12 +236,13 @@ export default function Playground() {
       </p>
 
       {down && (
-        <div className="mb-8 flex items-start gap-3 rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warn" />
+        <div className="mb-8 flex items-start gap-3 rounded-xl border border-brand/30 bg-brand/[0.06] p-4 text-sm">
+          <Info className="mt-0.5 size-5 shrink-0 text-brand" />
           <div>
-            <div className="font-semibold text-foreground">Backend not reachable</div>
+            <div className="font-semibold text-foreground">Browser demo mode</div>
             <p className="mt-1 text-muted-foreground">
-              Start the platform API, then reload:{" "}
+              Running in your browser &mdash; load the demo (or paste facts) and move the as-of
+              slider to see it work. To ingest your own PDFs, start the platform API:{" "}
               <code className="rounded bg-secondary px-1.5 py-0.5">python cogniflow-api/main.py</code>.
             </p>
           </div>

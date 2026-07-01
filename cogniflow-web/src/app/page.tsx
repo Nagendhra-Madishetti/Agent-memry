@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Check, Clock, Code, Minus, Network, Server, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock, Code, Network, Server, ShieldCheck } from "lucide-react";
 import demo from "@/data/demo_data.json";
 import fw from "@/data/benchmark_frameworks.json";
 import { displayName, site } from "@/lib/site";
 import { LinkButton } from "@/components/ui/link-button";
 import { Reveal } from "@/components/site/reveal";
 import { RagFlow } from "@/components/landing/rag-flow";
+import { CapabilityClasses } from "@/components/landing/capability-classes";
 import { FrameworkChart, type SysDatum } from "@/components/landing/framework-chart";
 
 const clean = (s: string) => s.replace(/\*\*/g, "").trim();
@@ -15,15 +16,6 @@ type Sys = { name: string; kind: string; as_of: { n: number; score: number } };
 const systems = fw.systems as unknown as Sys[];
 const bn = systems[0]?.as_of.n ?? 4;
 const asofData: SysDatum[] = systems.map((s) => ({ name: displayName(s.name), score: s.as_of.score, n: bn }));
-
-const matrix = [
-  { cap: "Semantic recall / retrieval quality", cf: "Yes", other: "Yes", tie: true },
-  { cap: "Ask “as of” a past date — temporally correct", cf: "Yes", other: null },
-  { cap: "Auditable provenance — every claim → its source", cf: "Yes", other: null },
-  { cap: "Replay what the system knew at any past moment", cf: "Yes", other: null },
-  { cap: "Self-hostable, in your VPC — data never leaves", cf: "Yes", other: null },
-  { cap: "Any model — LLM, embedder, reranker are plugins", cf: "Yes", other: "partial" },
-];
 
 const boundaries = [
   {
@@ -106,45 +98,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CAPABILITY MATRIX */}
-      <Section eyebrow="What sets it apart" title="Recall is table stakes. Time is the difference.">
-        <p className="text-subhead max-w-[62ch]">
-          Any good RAG can tell you what&rsquo;s true now. A temporal platform tells you what was
-          true then, proves it, and runs where your data lives.
+      {/* CAPABILITY CLASSES: Plain vs Temporal vs Bitemporal */}
+      <Section eyebrow="What sets it apart" title="Plain RAG. Temporal RAG. Bitemporal RAG.">
+        <p className="text-subhead max-w-[64ch]">
+          Recall is table stakes &mdash; every RAG answers &ldquo;what&rsquo;s true now.&rdquo;
+          A temporal RAG can answer &ldquo;what was true then.&rdquo; Only a <b>bitemporal</b>
+          {" "}platform also answers <b>what the system knew</b>, when a fact changed, and can
+          replay a belief that was corrected later. That last class is Cogniflow.
         </p>
-        <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card elev">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-secondary/60 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-5 py-3 font-semibold">Capability</th>
-                <th className="px-5 py-3 font-semibold">Cogniflow</th>
-                <th className="px-5 py-3 font-semibold">Typical vector RAG</th>
-              </tr>
-            </thead>
-            <tbody>
-              {matrix.map((r) => (
-                <tr key={r.cap} className="border-t border-border">
-                  <td className="px-5 py-4 text-foreground">{r.cap}</td>
-                  <td className="px-5 py-4">
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-brand">
-                      <Check className="size-4" /> {r.cf}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    {r.tie ? (
-                      <span className="font-medium text-foreground">Yes</span>
-                    ) : r.other === "partial" ? (
-                      <span className="text-warn">partial</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-miss">
-                        <Minus className="size-4" /> &mdash;
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-8">
+          <CapabilityClasses />
         </div>
       </Section>
 

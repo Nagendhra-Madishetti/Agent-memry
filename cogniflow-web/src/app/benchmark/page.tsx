@@ -4,6 +4,7 @@ import fw from "@/data/benchmark_frameworks.json";
 import { displayName } from "@/lib/site";
 import { Reveal } from "@/components/site/reveal";
 import { FrameworkChart, type SysDatum } from "@/components/landing/framework-chart";
+import { LandscapeCompare } from "@/components/landing/landscape-compare";
 
 export const metadata: Metadata = { title: "Benchmark" };
 
@@ -122,6 +123,20 @@ export default function BenchmarkPage() {
             </details>
           ))}
         </div>
+      </div>
+
+      {/* capability landscape */}
+      <div className="mt-12">
+        <Reveal>
+          <h2 className="text-section mb-2">How Cogniflow compares to the temporal-RAG field</h2>
+          <p className="mb-5 max-w-[68ch] text-sm text-muted-foreground">
+            A capability comparison &mdash; not a measured run. Most temporal-RAG systems retrieve
+            the right facts for a given time. A <b className="text-foreground">bitemporal</b>{" "}
+            platform also separates when a fact was true from when it was learned, replays past
+            beliefs, tracks falsification when facts are corrected, and audits provenance.
+          </p>
+          <LandscapeCompare />
+        </Reveal>
       </div>
 
       {/* methodology */}
