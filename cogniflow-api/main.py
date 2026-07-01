@@ -41,7 +41,12 @@ from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
 from cogniflow.context import serve_context  # noqa: E402
 from cogniflow.documents import ingest_document  # noqa: E402
 from cogniflow.generation import generate_answer  # noqa: E402
-from cogniflow.generators import available_generators, create_generator_from_env  # noqa: E402
+from cogniflow.generators import (  # noqa: E402
+    OpenAICompatibleGenerator,
+    available_generators,
+    create_generator,
+    create_generator_from_env,
+)
 from cogniflow.rerankers import available_rerankers  # noqa: E402
 from cogniflow.serving.audit import serialize_belief, serialize_trace  # noqa: E402
 
@@ -66,7 +71,8 @@ _GENERATOR = None
 def _parse_dt(value: str | None) -> datetime | None:
     if not value:
         return None
-    dt = datetime.fromisoformat(value)
+    # accept ISO-8601 with a trailing "Z" (Python <3.11's fromisoformat rejects it)
+    dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
@@ -75,6 +81,36 @@ def _generator():
     if _GENERATOR is None:
         _GENERATOR = create_generator_from_env()  # fail-loud if no key
     return _GENERATOR
+
+
+def _build_generator(gen: dict) -> OpenAICompatibleGenerator:
+    """Build a session generation model. A custom base_url (bring-your-own provider or a local
+    model like Ollama/vLLM) goes straight to the OpenAI-compatible client - no preset and no key
+    required (local endpoints ignore it). Otherwise use a named preset (fail-loud on bad name)."""
+    base_url = (gen.get("base_url") or "").strip()
+    if base_url:
+        return OpenAICompatibleGenerator(
+            api_key=(gen.get("api_key") or "").strip() or "local",
+            model=(gen.get("model") or "").strip() or "local-model",
+            base_url=base_url,
+        )
+    return create_generator(
+        gen.get("name") or "nvidia",
+        api_key=gen.get("api_key"),
+        model=gen.get("model"),
+    )
+
+
+def _sess_generator(session_id: str):
+    """The generation model for a session: a custom/selected plugin if configured, else the
+    environment default. Built lazily and cached per session."""
+    sess = _SESSIONS.get(session_id)
+    gen = sess and sess["config"].get("gen")
+    if sess and gen:
+        if sess.get("generator") is None:
+            sess["generator"] = _build_generator(gen)
+        return sess["generator"]
+    return _generator()
 
 
 async def _backend(session_id: str) -> GraphitiFalkorDBBackend:
@@ -131,6 +167,11 @@ class PluginConfig(BaseModel):
     reranker_model: str | None = None
     reranker_base_url: str | None = None
     reranker_api_key: str | None = None
+    # generation model (AI model plugin) — selectable + custom/local endpoint
+    generator: str | None = None
+    generator_model: str | None = None
+    generator_base_url: str | None = None
+    generator_api_key: str | None = None
 
 
 # ---- routes ----------------------------------------------------------------
@@ -193,11 +234,22 @@ async def set_config(cfg: PluginConfig) -> dict:
                 params["api_key"] = cfg.reranker_api_key
             c["retrieval_policy"] = "reranker"
             c["retrieval_params"] = params
+    if cfg.generator == "managed":
+        c.pop("gen", None)  # back to the platform default (env-configured)
+        sess["generator"] = None
+    elif cfg.generator:
+        c["gen"] = {
+            "name": cfg.generator,
+            "model": cfg.generator_model,
+            "base_url": cfg.generator_base_url,
+            "api_key": cfg.generator_api_key,
+        }
+        sess["generator"] = None  # rebuild the generator on next answer
     # force rebuild with new config on next use
     if sess["backend"] is not None:
         await sess["backend"].close()
         sess["backend"] = None
-    return {"ok": True, "config": sess["config"]}
+    return {"ok": True, "config": {k: v for k, v in sess["config"].items() if k != "gen"}}
 
 
 @app.post("/api/ingest")
@@ -258,7 +310,7 @@ async def context(q: Query) -> dict:
 async def answer(q: Query) -> dict:
     backend = await _backend(q.session_id)
     res = await generate_answer(
-        backend, q.query, _generator(), as_of=_parse_dt(q.as_of), top_k=q.top_k
+        backend, q.query, _sess_generator(q.session_id), as_of=_parse_dt(q.as_of), top_k=q.top_k
     )
     return res.to_dict()
 

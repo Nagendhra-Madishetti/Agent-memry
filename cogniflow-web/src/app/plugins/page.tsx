@@ -28,6 +28,13 @@ export default function PluginsPage() {
   const [cModel, setCModel] = useState("");
   const [cKey, setCKey] = useState("");
 
+  // generation model (AI model plugin)
+  const [generator, setGenerator] = useState("managed");
+  const [gCustom, setGCustom] = useState(false);
+  const [gBase, setGBase] = useState("http://localhost:11434/v1");
+  const [gModel, setGModel] = useState("");
+  const [gKey, setGKey] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -58,6 +65,10 @@ export default function PluginsPage() {
         embedder_model: custom ? cModel || undefined : undefined,
         embedder_api_key: custom ? cKey || undefined : undefined,
         reranker,
+        generator: gCustom ? "openai" : generator,
+        generator_base_url: gCustom ? gBase : undefined,
+        generator_model: gCustom ? gModel || undefined : undefined,
+        generator_api_key: gCustom ? gKey || undefined : undefined,
       });
       toast.success("Plugin configuration saved for your session.");
     } catch (e) {
@@ -65,7 +76,7 @@ export default function PluginsPage() {
     } finally {
       setSaving(false);
     }
-  }, [sid, embedder, reranker, custom, cBase, cModel, cKey]);
+  }, [sid, embedder, reranker, custom, cBase, cModel, cKey, generator, gCustom, gBase, gModel, gKey]);
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-12">
@@ -116,9 +127,27 @@ export default function PluginsPage() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <Layer icon={<Cpu className="size-4" />} title="Generation model" desc="Answers from the served context. Model-agnostic.">
-            <Tags options={plugins?.generators ?? ["nvidia", "openai"]} />
-            <p className="mt-3 text-xs text-muted-foreground">Selected via environment (<code className="rounded bg-secondary px-1 py-0.5">COGNIFLOW_GENERATOR</code>) or a custom endpoint. Any OpenAI-compatible provider or local model.</p>
+          <Layer icon={<Cpu className="size-4" />} title="Generation model" desc="Answers from the served context. Model-agnostic — swap it live." live>
+            <LabeledChips
+              options={[
+                { label: "Platform default", value: "managed" },
+                { label: "OpenAI-compatible", value: "openai" },
+              ]}
+              value={generator}
+              onChange={(v) => { setGenerator(v); setGCustom(false); }}
+              disabled={gCustom}
+            />
+            <button onClick={() => setGCustom((v) => !v)} className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:underline">
+              <Plug className="size-3.5" /> {gCustom ? "Use a managed model" : "Add custom / local model"}
+            </button>
+            {gCustom && (
+              <div className="mt-3 space-y-2 rounded-lg border border-border bg-secondary/40 p-3">
+                <p className="text-xs text-muted-foreground">Any OpenAI-compatible chat endpoint (hosted or local — vLLM, Ollama, LM Studio).</p>
+                <Input placeholder="base URL (http://localhost:11434/v1)" value={gBase} onChange={(e) => setGBase(e.target.value)} className="h-8" />
+                <Input placeholder="model id (e.g. llama3.1:8b)" value={gModel} onChange={(e) => setGModel(e.target.value)} className="h-8" />
+                <Input placeholder="API key (blank for local)" value={gKey} onChange={(e) => setGKey(e.target.value)} className="h-8" type="password" />
+              </div>
+            )}
           </Layer>
         </Reveal>
 
@@ -155,6 +184,16 @@ function Layer({ icon, title, desc, live, children }: { icon: React.ReactNode; t
   );
 }
 
+// Display labels keep the provider out of the UI — the infrastructure is ours, the endpoint is a
+// plug. Values sent to the backend are unchanged.
+const PRESET_LABELS: Record<string, string> = {
+  hash: "hash (dev)",
+  "bge-m3": "bge-m3",
+  "nvidia-e5": "e5-large",
+  "bge-reranker-v2-m3": "bge-reranker-v2",
+  "nvidia-rerank": "cross-encoder",
+};
+
 function Chips({ options, value, onChange, disabled }: { options: string[]; value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -167,7 +206,36 @@ function Chips({ options, value, onChange, disabled }: { options: string[]; valu
             value === o ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:bg-accent"
           }`}
         >
-          {o}
+          {PRESET_LABELS[o] ?? o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function LabeledChips({
+  options,
+  value,
+  onChange,
+  disabled,
+}: {
+  options: { label: string; value: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          disabled={disabled}
+          onClick={() => onChange(o.value)}
+          className={`rounded-full border px-3 py-1 text-sm transition-colors disabled:opacity-40 ${
+            value === o.value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:bg-accent"
+          }`}
+        >
+          {o.label}
         </button>
       ))}
     </div>

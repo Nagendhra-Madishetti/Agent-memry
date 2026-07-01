@@ -69,6 +69,10 @@ export const api = {
       reranker_model?: string;
       reranker_base_url?: string;
       reranker_api_key?: string;
+      generator?: string;
+      generator_model?: string;
+      generator_base_url?: string;
+      generator_api_key?: string;
     },
   ) => jpost<{ ok: boolean }>("/api/config", { session_id, ...cfg }),
   ingestText: (session_id: string, text: string, title: string, reference_time?: string) =>
