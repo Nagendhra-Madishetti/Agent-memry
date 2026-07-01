@@ -87,6 +87,21 @@ This is **ChronoRAG** (temporal) × **PALIMPSEST** (self-falsifying) as a librar
 > with the embedder** and is validated against the store, hard-crashing on mismatch rather
 > than corrupting the vector space. See [docs/EMBEDDERS.md](docs/EMBEDDERS.md).
 
+> **Product layer - Generation (closing the RAG loop: context -> cited answer).** Cogniflow
+> now answers end to end (`cogniflow.generation.generate_answer`): documents in ->
+> temporally-correct, provenance-cited answer out - a full RAG, with the temporal correctness
+> and provenance plain RAG lacks. It is **thin and optional, built on the context API**: a
+> caller picks **context out** (bring your own model) or **answer out** (we generate); without
+> a generator only the context surface exists, so the model-agnostic core survives. **The
+> centerpiece - temporal correctness survives generation (proven live):** Tesla HQ moved Palo
+> Alto -> Austin and the generation model's *training* knows Austin, yet asked "as of 2018"
+> the answer is **Palo Alto** (from the as-of context), because the LLM is constrained to
+> answer only from the served context and ignore its training. The answer carries the
+> `valid_at_source` confidence (so it doesn't launder the prose-extraction floor into
+> confident prose) and the provenance it was built from (audit-traceable). The generation LLM
+> is a **model-agnostic, fail-loud plug** (`cogniflow.generators`, NVIDIA/OpenAI/local), and
+> both surfaces run over MCP + HTTP, self-hostable. See [docs/GENERATION.md](docs/GENERATION.md).
+
 ## Design rule
 
 The **core is dependency-free**. `cogniflow.core` imports nothing but the standard

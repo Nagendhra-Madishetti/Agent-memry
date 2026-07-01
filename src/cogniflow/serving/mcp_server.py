@@ -16,6 +16,7 @@ from typing import Any
 
 from ..context import serve_context
 from ..core.contracts import AsyncSubstrate
+from ..generation import generate_answer
 
 try:
     from mcp.server.fastmcp import FastMCP
@@ -25,8 +26,15 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 
-def build_mcp_server(substrate: AsyncSubstrate, *, name: str = "cogniflow-context") -> FastMCP:
-    """Build an MCP server exposing the read-only context tool over ``substrate``."""
+def build_mcp_server(
+    substrate: AsyncSubstrate,
+    generator: Any | None = None,
+    *,
+    name: str = "cogniflow-context",
+) -> FastMCP:
+    """Build an MCP server exposing the read-only context tool over ``substrate``. If a
+    ``generator`` is provided, a ``get_answer`` tool (answer out) is exposed alongside
+    ``get_context`` (context out), so an agent can ask for context or a cited answer."""
     server = FastMCP(name)
 
     @server.tool()
@@ -54,5 +62,35 @@ def build_mcp_server(substrate: AsyncSubstrate, *, name: str = "cogniflow-contex
             include_expired=include_expired,
         )
         return response.to_dict()
+
+    if generator is not None:
+
+        @server.tool()
+        async def get_answer(
+            query: str,
+            as_of: str | None = None,
+            top_k: int = 5,
+            include_expired: bool = False,
+        ) -> dict[str, Any]:
+            """Answer a question from temporally-correct context (a cited answer, as of the
+            given instant), un-knowing what the context un-knows. Carries the facts, their
+            valid_at_source confidence, and provenance the answer was built from.
+
+            Args:
+                query: the question to answer.
+                as_of: optional ISO-8601 timestamp; the answer is resolved as of this instant.
+                top_k: max facts to ground the answer in.
+                include_expired: include superseded facts (for why-changed answers).
+            """
+            parsed = datetime.fromisoformat(as_of) if as_of else None
+            result = await generate_answer(
+                substrate,
+                query,
+                generator,
+                as_of=parsed,
+                top_k=top_k,
+                include_expired=include_expired,
+            )
+            return result.to_dict()
 
     return server

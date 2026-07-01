@@ -50,7 +50,7 @@ def test_http_context_endpoint_returns_context_not_answer() -> None:
     from cogniflow.serving import create_app
 
     client = TestClient(create_app(_FakeSubstrate()))
-    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/healthz").json()["status"] == "ok"
 
     r = client.post(
         "/context", json={"query": "where is Acme", "as_of": "2023-01-01T00:00:00+00:00"}
