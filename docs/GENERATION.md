@@ -53,6 +53,25 @@ One OpenAI-compatible client covers NVIDIA/MiniMax/OpenAI and any compatible end
 unknown name raises at construction - never a silent no-op. Dependency-light (stdlib HTTP), so
 the generation core carries no LLM-SDK dependency.
 
+### Swapping the generation model requires re-running the centerpiece test
+
+This is the one place the temporal guarantee becomes **model-dependent**, so read before you
+swap. Temporal correctness has two halves with different guarantees:
+
+- **As-of filtering is deterministic and guaranteed.** The wrong (future) fact is never in the
+  served context - `serve_context` filtered it out. This half does not depend on the model.
+- **Prompt adherence is probabilistic and model-dependent.** Whether the model honors the
+  "answer only from context, ignore your training" constraint - instead of overriding the
+  context with what its training knows - rides on the specific model. A weaker model may leak
+  training knowledge into a past answer even though the wrong fact was never in the context.
+
+Therefore: **swapping the generation model (via the plug) requires re-running the centerpiece
+test** (`tests/integration/test_generation_live.py::test_temporal_correctness_survives_generation`)
+against the new model. It is the adversarial case - a fact the model's training gets wrong for
+a past date (Tesla HQ = Palo Alto as of 2018, not the training-known Austin). If the new model
+still answers from the context, the guarantee holds for it; if not, it is not a safe generation
+model for this product without prompt hardening. The centerpiece is not free with a new model.
+
 ## Faithfulness (T5)
 The answer is grounded in the served context; asked something the context cannot answer, it
 declines rather than inventing a fact (an invention would break the provenance chain). Tested

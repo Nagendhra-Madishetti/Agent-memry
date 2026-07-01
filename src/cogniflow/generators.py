@@ -7,6 +7,13 @@ self-hosted/local model slots in the same way for the VPC wedge.
 
 Dependency-light: stdlib HTTP only, so the generation core carries no LLM-SDK dependency.
 Fail-loud: a missing key or an unknown name raises at construction - never a silent no-op.
+
+WARNING - swapping the generation model is not free: temporal correctness at the generation
+edge has a model-dependent half (prompt adherence - the model honoring "answer only from the
+served context, ignore your training"). The as-of filtering that removes the wrong fact is
+deterministic, but a weaker model may still override the context with its training knowledge.
+Re-run the centerpiece test against any new model before trusting it
+(tests/integration/test_generation_live.py; see docs/GENERATION.md).
 """
 
 from __future__ import annotations
