@@ -185,11 +185,20 @@ async def health() -> dict:
         falkordb = True
     except Exception:
         pass
+    embedder_semantic = DEFAULT_EMBEDDER != "hash"
+    warnings = []
+    if not embedder_semantic:
+        warnings.append(
+            "Retrieval is non-semantic (hash embedder). Set COGNIFLOW_EMBEDDER=bge-m3 with "
+            "COGNIFLOW_EMBEDDER_API_KEY (or bge-m3-local) for semantic recall - see the Quickstart."
+        )
     return {
         "status": "ok",
         "falkordb": falkordb,
         "llm": bool(os.getenv("COGNIFLOW_LLM_API_KEY")),
         "embedder": DEFAULT_EMBEDDER,
+        "embedder_semantic": embedder_semantic,
+        "warnings": warnings,
     }
 
 

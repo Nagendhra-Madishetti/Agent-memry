@@ -176,6 +176,21 @@ This is what keeps the contracts stable and the architecture pluggable.
 pip install -e ".[dev]"
 ```
 
+## First-run retrieval: pick a real embedder
+
+Retrieval boots on the key-free `hash` embedder so the engine and correctness tests run with
+zero dependencies and no key. **Hash is meaning-blind** (it ranks by lexical token overlap, not
+meaning), so before you evaluate retrieval, choose a real embedder - by your constraint:
+
+- **key-free, needs torch** - `pip install -e ".[embeddings]"`, then `COGNIFLOW_EMBEDDER=bge-m3-local`
+- **dependency-light, needs a key** - `COGNIFLOW_EMBEDDER=bge-m3` + `COGNIFLOW_EMBEDDER_API_KEY=...`
+
+Either gives semantic recall. Hash never runs silently - it warns at startup and on every served
+response, so nobody unknowingly evaluates on lexical results. A real embedder fixes **retrieval**
+(which facts come back); it does not lift the prose-**extraction** floor (how well facts are
+pulled from prose - that is bounded by the generation model, and stays labeled per fact via
+`valid_at_source`).
+
 ## Prove the skeleton
 
 ```bash

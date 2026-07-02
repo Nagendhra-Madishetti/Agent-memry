@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import time
 import urllib.error
@@ -33,6 +34,7 @@ from graphiti_core.embedder.client import EmbedderClient, EmbedderConfig
 
 from ._local_embedder import LocalDeterministicEmbedder
 
+_LOG = logging.getLogger("cogniflow")
 _RETRY_STATUS = {429, 500, 502, 503, 504}
 _DEFAULT_NVIDIA_BASE = "https://integrate.api.nvidia.com/v1"
 
@@ -114,8 +116,79 @@ class NvidiaEmbedder(EmbedderClient):
         return await asyncio.to_thread(self._post, list(input_data_list), "passage")
 
 
+class LocalBgeEmbedder(EmbedderClient):
+    """The key-free SEMANTIC embedder: BGE-M3 run locally via FlagEmbedding (the
+    ``[embeddings]`` extra + a local model download). No API key; runs entirely in the caller's
+    environment (the VPC path). Needs torch/model weights, so it is NOT the dependency-light
+    default. 1024-dim dense vectors, matching the hosted ``bge-m3`` option, so the store
+    dimension is identical either way. Verified by ``test_embedder_local`` when the extra is
+    installed; a labeled wired-but-unverified seam otherwise (like the local reranker)."""
+
+    def __init__(  # pragma: no cover
+        self, model: str = "BAAI/bge-m3", embedding_dim: int = 1024
+    ) -> None:
+        try:
+            from FlagEmbedding import BGEM3FlagModel
+        except ImportError as e:
+            raise EmbedderError(
+                "embedder 'bge-m3-local' needs the 'embeddings' extra: pip install "
+                "'cogniflow-rag[embeddings]' (torch + model weights). Or select 'bge-m3' for the "
+                "dependency-light hosted option (needs COGNIFLOW_EMBEDDER_API_KEY). Refusing to "
+                "silently fall back to the hash embedder."
+            ) from e
+        self.config = EmbedderConfig(embedding_dim=embedding_dim)
+        self.model = model
+        self._model = BGEM3FlagModel(model, use_fp16=True)
+
+    @property
+    def embedding_dim(self) -> int:  # pragma: no cover
+        return self.config.embedding_dim
+
+    def _encode(self, texts: list[str]) -> list[list[float]]:  # pragma: no cover
+        dense = self._model.encode(texts, return_dense=True)["dense_vecs"]
+        return [list(map(float, v)) for v in dense]
+
+    async def create(  # pragma: no cover
+        self, input_data: str | list[str]
+    ) -> list[float]:
+        text = input_data if isinstance(input_data, str) else " ".join(map(str, input_data))
+        vectors = await asyncio.to_thread(self._encode, [text])
+        return vectors[0]
+
+    async def create_batch(  # pragma: no cover
+        self, input_data_list: list[str]
+    ) -> list[list[float]]:
+        if not input_data_list:
+            return []
+        return await asyncio.to_thread(self._encode, list(input_data_list))
+
+
+# The retrieval-quality warning surfaced when the meaning-blind hash embedder is in use. Kept
+# here (the embedder concern); the serving layer surfaces its own response note (Phase 3 T1).
+NON_SEMANTIC_RETRIEVAL_WARNING = (
+    "Retrieval is NON-SEMANTIC: the hash embedder is meaning-blind (it ranks by token overlap, "
+    "not meaning). Configure a real embedder for semantic recall - 'bge-m3-local' (key-free, "
+    "needs the [embeddings] extra) or 'bge-m3' (dependency-light, needs "
+    "COGNIFLOW_EMBEDDER_API_KEY). See the Quickstart. (Hash stays the key-free boot default.)"
+)
+
+
+def is_semantic(embedder: EmbedderClient) -> bool:
+    """True when the embedder produces meaning-based vectors (i.e. not the hash placeholder)."""
+    return not isinstance(embedder, LocalDeterministicEmbedder)
+
+
+def warn_if_non_semantic(embedder: EmbedderClient) -> None:
+    """Emit a loud warning when running on the meaning-blind hash embedder outside a test, so a
+    stranger never unknowingly evaluates retrieval on lexical results (Phase 3 T1). Silent inside
+    pytest so correctness tests (which run on hash by design) stay clean and deterministic."""
+    if is_semantic(embedder) or os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    _LOG.warning(NON_SEMANTIC_RETRIEVAL_WARNING)
+
+
 def available_embedders() -> list[str]:
-    return ["hash", *sorted(_NVIDIA_MODELS)]
+    return ["hash", "bge-m3-local", *sorted(_NVIDIA_MODELS)]
 
 
 def create_embedder(
@@ -133,6 +206,10 @@ def create_embedder(
 
     if name == "hash":
         return LocalDeterministicEmbedder(embedding_dim)
+
+    if name == "bge-m3-local":
+        # key-free semantic option (needs the [embeddings] extra); fail-loud if torch absent
+        return LocalBgeEmbedder(model or "BAAI/bge-m3", embedding_dim=embedding_dim)
 
     if name in EXCLUDED_MODELS or (model and model in EXCLUDED_MODELS):
         reason = EXCLUDED_MODELS.get(name) or EXCLUDED_MODELS.get(model or "", "excluded")

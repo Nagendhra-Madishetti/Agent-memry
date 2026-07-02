@@ -28,6 +28,19 @@ EXTRACTION_FLOOR_NOTE = (
     "no validity. Use each fact's valid_at_source to weight confidence."
 )
 
+# Phase 3 retrieval-quality notes (T1/T3), surfaced so a consumer never unknowingly evaluates on
+# meaning-blind or below-window retrieval. Distinct from the extraction floor above: these are
+# about RETRIEVAL (the embedder / the over-fetch window), not prose EXTRACTION (the LLM).
+NON_SEMANTIC_RETRIEVAL_NOTE = (
+    "Retrieval is non-semantic (hash embedder): results are ranked by lexical token overlap, not "
+    "meaning. Configure a real embedder for semantic recall - 'bge-m3-local' (key-free, needs the "
+    "[embeddings] extra) or 'bge-m3' (needs COGNIFLOW_EMBEDDER_API_KEY). See the Quickstart."
+)
+OVERFETCH_SATURATED_NOTE = (
+    "The retrieval over-fetch window was saturated: a valid fact ranked below it may have been "
+    "missed. Raise COGNIFLOW_OVERFETCH_FACTOR / COGNIFLOW_MIN_OVERFETCH, or narrow the query."
+)
+
 # Normalize the producer's raw label into a 3-way confidence signal. The raw label is also
 # carried (valid_at_source_raw) so nothing is hidden.
 #   authoritative - an explicit time was asserted by the source or the caller
@@ -135,4 +148,12 @@ async def serve_context(
         )
     )
     facts = [_belief_to_served(sb) for sb in result.results]
-    return ContextResponse(query=query, as_of=result.as_of, facts=facts)
+    # Surface retrieval-quality notes when the substrate reports them (generic getattr, so a
+    # substrate that does not expose these is unaffected). Never silent about meaning-blind
+    # retrieval or a saturated over-fetch window (Phase 3 T1/T3).
+    notes = [EXTRACTION_FLOOR_NOTE]
+    if not getattr(substrate, "embedder_is_semantic", True):
+        notes.append(NON_SEMANTIC_RETRIEVAL_NOTE)
+    if getattr(substrate, "last_read_saturated", False):
+        notes.append(OVERFETCH_SATURATED_NOTE)
+    return ContextResponse(query=query, as_of=result.as_of, facts=facts, notes=tuple(notes))

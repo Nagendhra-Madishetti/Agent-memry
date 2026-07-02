@@ -81,17 +81,28 @@ pip install -e ".[all,serve]"
 # 2. Start the graph store (Docker)
 docker run -d --name cogniflow-db -p 6379:6379 falkordb/falkordb:latest
 
-# 3. Configure providers (.env at repo root)
-#    Providers are plugins — point at any OpenAI-compatible endpoint or a local model.
-COGNIFLOW_LLM_API_KEY=...        # your model provider key
+# 3. Configure the model + a REAL embedder (.env at repo root)
+#    Retrieval defaults to the key-free 'hash' embedder, which is MEANING-BLIND (lexical only).
+#    Pick a real embedder so first-run retrieval is semantic — choose by your constraint:
+#      key-free, needs torch:  COGNIFLOW_EMBEDDER=bge-m3-local   (pip install -e ".[embeddings]")
+#      dependency-light, key:  COGNIFLOW_EMBEDDER=bge-m3         (needs COGNIFLOW_EMBEDDER_API_KEY)
+COGNIFLOW_LLM_API_KEY=...        # generation model provider key
 COGNIFLOW_LLM_BASE_URL=...       # provider base URL
 COGNIFLOW_LLM_MODEL=...          # model id
-COGNIFLOW_EMBEDDER_API_KEY=...   # embeddings provider key (optional; hash embedder is key-free)
+COGNIFLOW_EMBEDDER=bge-m3        # semantic retrieval (or 'bge-m3-local' for the key-free path)
+COGNIFLOW_EMBEDDER_API_KEY=...   # required for bge-m3 (hosted); omit for bge-m3-local
 
 # 4. Run the platform API + the web app
 python cogniflow-api/main.py                 # http://localhost:8000
 pnpm -C cogniflow-web dev                     # http://localhost:3000`}</Code>
             <p>Open the playground, upload a PDF, and ask a question with the <b>as-of</b> date set to the past.</p>
+            <p className="mt-3 rounded-lg border border-brand/20 bg-brand/[0.04] p-3 text-sm">
+              A real embedder fixes <b>retrieval</b> (which facts come back). It does not change{" "}
+              <b>extraction</b> (how well facts are pulled from prose) &mdash; that is bounded by the
+              generation model and stays honestly labeled per fact via <code>valid_at_source</code>.
+              The hash embedder remains the key-free boot default, but it is never silent: the API
+              health check and every response warn when retrieval is non-semantic.
+            </p>
           </Doc>
 
           <Doc id="deploy" title="Deploy (self-host)">

@@ -13,6 +13,7 @@ core import-free.
 from __future__ import annotations
 
 import inspect
+import logging
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -44,7 +45,14 @@ from ..core.types import (
 )
 from ..observability import log_read
 from ..registry import create_policy
-from .embedders import check_embedding_dimension, create_embedder
+from .embedders import (
+    check_embedding_dimension,
+    create_embedder,
+    is_semantic,
+    warn_if_non_semantic,
+)
+
+_LOG = logging.getLogger("cogniflow")
 
 
 def _utc_now() -> datetime:
@@ -76,6 +84,11 @@ class GraphitiFalkorDBConfig:
     # (e.g. "recency"); validity-filtering always runs first (see read()).
     retrieval_policy: str = "default"
     retrieval_params: dict[str, Any] = field(default_factory=dict)
+    # Retrieval over-fetch (G3 stopgap): the FalkorDriver ignores the date search_filter, so
+    # read() over-fetches candidates and validity-filters in-process. Tunable: raise these if a
+    # saturated window risks dropping a valid-at-T fact ranked below it (a false negative).
+    overfetch_factor: int = 10
+    min_overfetch: int = 50
     # Backend driver selection (T1 multi-backend). "falkordb" (default) or "neo4j".
     backend_driver: str = "falkordb"
     neo4j_uri: str = "bolt://localhost:7687"
@@ -102,6 +115,8 @@ class GraphitiFalkorDBConfig:
             embedder_model=os.getenv("COGNIFLOW_EMBEDDER_MODEL"),
             embedder_api_key=os.getenv("COGNIFLOW_EMBEDDER_API_KEY"),
             embedder_base_url=os.getenv("COGNIFLOW_EMBEDDER_BASE_URL"),
+            overfetch_factor=int(os.getenv("COGNIFLOW_OVERFETCH_FACTOR", "10")),
+            min_overfetch=int(os.getenv("COGNIFLOW_MIN_OVERFETCH", "50")),
         )
 
 
@@ -135,12 +150,10 @@ class GraphitiFalkorDBBackend:
 
     name = "graphiti-falkordb"
 
-    # Over-fetch stopgap (G3): the FalkorDriver does not apply the date
-    # SearchFilters, so a valid-at-T fact ranked outside top_k would be silently
-    # dropped. Fetch a wider candidate set, validity-filter in-process, then
-    # truncate to top_k.
-    _OVERFETCH_FACTOR = 10
-    _MIN_OVERFETCH = 50
+    # Over-fetch stopgap (G3): the FalkorDriver does not apply the date SearchFilters, so a
+    # valid-at-T fact ranked outside top_k would be silently dropped. read() fetches a wider
+    # candidate set (config.overfetch_factor / config.min_overfetch), validity-filters
+    # in-process, then truncates to top_k - and warns if the window saturates (Phase 3 T3).
 
     def __init__(
         self,
@@ -191,12 +204,28 @@ class GraphitiFalkorDBBackend:
             embedder=self._embedder,
             cross_encoder=OpenAIRerankerClient(config=llm_config),
         )
+        # Retrieval health flags surfaced to the serving layer (Phase 3 T3): whether the last
+        # read saturated the over-fetch window (a valid-at-T fact may rank below it and be missed).
+        self._last_read_saturated = False
+        self._warned_saturated = False
 
     @property
     def validity(self) -> ValidityPolicy:
         """The shared validity policy instance (so the agent postprocessor can use
         the same object, not a second copy). One instance, not merely one class."""
         return self._validity
+
+    @property
+    def embedder_is_semantic(self) -> bool:
+        """Whether retrieval uses a meaning-based embedder (False = the hash placeholder). The
+        serving layer surfaces a note when False so nobody evaluates on lexical results (T1)."""
+        return is_semantic(self._embedder)
+
+    @property
+    def last_read_saturated(self) -> bool:
+        """Whether the most recent read() filled the over-fetch window - a valid-at-T fact ranked
+        below it may have been missed (G3). Surfaced as a response note (T3)."""
+        return self._last_read_saturated
 
     def add_write_listener(self, listener: Any) -> None:
         """Register a callback ``listener(group_id)`` fired after each write (e.g. a
@@ -211,6 +240,7 @@ class GraphitiFalkorDBBackend:
         dimension change is caught at startup rather than silently corrupting the space."""
         check_embedding_dimension(await self._detect_store_dim(), self._embedder.embedding_dim)
         await self._graphiti.build_indices_and_constraints()
+        warn_if_non_semantic(self._embedder)  # T1: never let meaning-blind hash run silently
 
     async def _detect_store_dim(self) -> int | None:
         """Best-effort: the dimension of vectors already in the store, or None if the store
@@ -311,7 +341,7 @@ class GraphitiFalkorDBBackend:
         )
 
     async def read(self, query: RetrievalQuery) -> RetrievalResult:
-        overfetch = max(query.top_k * self._OVERFETCH_FACTOR, self._MIN_OVERFETCH)
+        overfetch = max(query.top_k * self.config.overfetch_factor, self.config.min_overfetch)
         edges = await self._graphiti.search(
             query=query.text,
             group_ids=[self.group_id],
@@ -327,6 +357,18 @@ class GraphitiFalkorDBBackend:
         # Pipeline order (T4): validity-filter (deterministic) BEFORE rank (opt-in,
         # possibly expensive), then truncate. Reranking never runs on invalid facts.
         results = tuple(rank_valid(beliefs, query, self._validity, self._retrieval))
+        # G3 (Phase 3 T3): correctness rides on the over-fetch window because the driver ignores
+        # the date filter. If it saturated, a valid-at-T fact could rank below it and be missed -
+        # make that risk non-silent (a warning + a served note) instead of a silent false negative.
+        self._last_read_saturated = len(edges) >= overfetch
+        if self._last_read_saturated and not self._warned_saturated:
+            self._warned_saturated = True
+            _LOG.warning(
+                "Retrieval over-fetch window saturated (%d candidates); a valid-at-T fact "
+                "ranked below it may be missed. Raise COGNIFLOW_OVERFETCH_FACTOR / "
+                "COGNIFLOW_MIN_OVERFETCH or narrow the query.",
+                overfetch,
+            )
         log_read(query.text, query.as_of, len(beliefs), len(results))
         return RetrievalResult(query=query, results=results, as_of=query.as_of)
 
