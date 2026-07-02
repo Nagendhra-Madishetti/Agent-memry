@@ -21,6 +21,7 @@ moment**, without leaking later corrections into the past.
 
 ---
 
+
 ## Why
 
 Every fact in Cogniflow lives on **two independent time axes** - *when it was true in the
@@ -97,6 +98,7 @@ system-time slider across 2022 - the answer flips Boston↔Denver in front of yo
 
 ## 🏗 Architecture
 
+<img width="1060" height="923" alt="image" src="https://github.com/user-attachments/assets/d750bfd0-349c-4786-a881-206cc62b1aee" />
 
 
 **The core is dependency-free.** `cogniflow.core` imports only the standard library; heavy
