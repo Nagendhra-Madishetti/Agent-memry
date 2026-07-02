@@ -1,0 +1,11 @@
+# Normalize all text files to LF in the repository (stops mixed-line-ending warnings).
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+# Binaries: never touch line endings.
+*.png binary
+*.gif binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
