@@ -153,7 +153,11 @@ async def main() -> None:
 
     # Cogniflow store (also serves the Graphiti-substrate ablation)
     cfg = GraphitiFalkorDBConfig.from_env(group_id=GROUP)
-    cfg.embedder = "bge-m3" if os.getenv("COGNIFLOW_EMBEDDER_API_KEY") else "hash"
+    # Honor COGNIFLOW_EMBEDDER (e.g. nvidia-e5 when the hosted bge-m3 has an outage); the
+    # LlamaIndex helper (NvidiaEmbedding) defaults to e5 too, so both embedding systems match.
+    cfg.embedder = os.getenv("COGNIFLOW_EMBEDDER") or (
+        "bge-m3" if os.getenv("COGNIFLOW_EMBEDDER_API_KEY") else "hash"
+    )
     backend = GraphitiFalkorDBBackend(cfg)
     await backend.setup()
     await build(backend)

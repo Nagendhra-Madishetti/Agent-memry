@@ -119,8 +119,17 @@ EPISODES = [_hq(*row) for row in (*_STABLE[:6], *_MOVES[:6], *_STABLE[6:], *_MOV
 
 
 async def build(backend) -> None:
+    # Retry-until-real per episode: a transient hosted-API 429/500 burst must never kill the
+    # run (or worse, produce a partial corpus). Fail loud only after generous backoff.
     for ep in EPISODES:
-        await backend.write(ep)
+        for attempt in range(8):
+            try:
+                await backend.write(ep)
+                break
+            except Exception:
+                if attempt == 7:
+                    raise
+                await asyncio.sleep(min(2**attempt, 45))
 
 
 # Panel 1: 20 stable fictional facts that do not change - a fair test both systems can pass.

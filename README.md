@@ -86,8 +86,14 @@ system-time slider across 2022 — the answer flips Boston↔Denver in front of 
 ![System-time replay: scrubbing past the 2022 correction flips the belief Boston to Denver](docs/media/replay-scrubber.gif)
 
 > **Deployment honesty:** `docker compose up` stands up the whole stack for a **local /
-> trusted environment**. It is not production-grade HA (in-memory session state and an
-> in-process queue don't survive multi-replica) — that re-architecture is on the roadmap.
+> trusted environment**. For multi-replica, `COGNIFLOW_SHARED_STATE=1` moves session
+> ownership/config and rate limits into Redis (the FalkorDB server) and `RedisJournal` makes
+> the write-back queue durable and shared — proven by a two-replica test
+> (`docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build` then
+> `bash scripts/two_replica_proof.sh`). A `/metrics` endpoint gives the ops floor. That makes
+> the shell **production-deployable** — still **not "enterprise"**: RBAC, access-audit
+> logging, GDPR deletion, and certified isolation remain out of scope (see
+> [SECURITY.md](SECURITY.md)).
 
 ## 🏗 Architecture
 

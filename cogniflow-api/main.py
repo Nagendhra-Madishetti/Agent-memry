@@ -154,8 +154,20 @@ def _guard(session_id: str, token: str | None) -> None:
         raise HTTPException(422, "invalid session_id (allowed: A-Za-z0-9_-, 1-64 chars)")
     if token is None:
         return
+    if _RSTATE is not None:
+        # F5 shared mode: ownership lives in the store, so ANY replica enforces the same 403
+        rec = _store_get(session_id)
+        if rec is not None and rec.get("owner") not in (None, token):
+            _count("forbidden_total")
+            raise HTTPException(403, "forbidden: this session belongs to a different token")
+        if rec is None:
+            _store_put(session_id, token, {})
+        sess = _SESSIONS.setdefault(session_id, {"config": {}, "backend": None})
+        sess.setdefault("owner", token)
+        return
     sess = _SESSIONS.get(session_id)
     if sess is not None and sess.get("owner") not in (None, token):
+        _count("forbidden_total")
         raise HTTPException(403, "forbidden: this session belongs to a different token")
     sess = _SESSIONS.setdefault(session_id, {"config": {}, "backend": None})
     sess.setdefault("owner", token)
@@ -165,9 +177,22 @@ def _rate_limit(request: Request, token: str | None) -> None:
     """Per-token (or per-IP) sliding-window limit on the endpoints that spend LLM/embedder money,
     so a burst is throttled (429) rather than a cost/availability bomb."""
     key = token or (request.client.host if request.client else "unknown")
+    if _RSTATE is not None:
+        # F5 shared mode: a fixed-window counter in Redis, enforced identically by every replica
+        bucket = f"cf:rate:{key}:{int(time.time() // _RATE_WINDOW)}"
+        n = _RSTATE.incr(bucket)
+        if n == 1:
+            _RSTATE.expire(bucket, int(_RATE_WINDOW) + 5)
+        if n > _RATE_LIMIT:
+            _count("rate_limited_total")
+            raise HTTPException(
+                429, "rate limit exceeded; slow down", headers={"Retry-After": "60"}
+            )
+        return
     now = time.monotonic()
     hits = [t for t in _RATE.get(key, ()) if t > now - _RATE_WINDOW]
     if len(hits) >= _RATE_LIMIT:
+        _count("rate_limited_total")
         raise HTTPException(429, "rate limit exceeded; slow down", headers={"Retry-After": "60"})
     hits.append(now)
     _RATE[key] = hits
@@ -180,6 +205,55 @@ def _safe_config(config: dict) -> dict:
         for k, v in config.items()
         if k != "gen"
     }
+
+
+# ---- shared state (F5): multi-replica-safe sessions + rate limits ---------------------------
+# COGNIFLOW_SHARED_STATE=1 moves session ownership/config and rate counters into Redis (the
+# FalkorDB server speaks the Redis protocol - zero extra infrastructure), so any replica can
+# serve any session and the Phase-4 scoping semantics hold across process death. Heavy objects
+# (backend connections, generators) remain per-process caches, rebuilt from the shared config
+# via a version stamp. Fail-loud: shared mode with an unreachable store refuses to start -
+# never a silent fall back to process-local state (which would quietly void the guarantee).
+_SHARED = os.getenv("COGNIFLOW_SHARED_STATE") == "1"
+_RSTATE = None
+if _SHARED:
+    import json as _json
+
+    import redis as _redis  # ships with the falkordb client
+
+    _RSTATE = _redis.Redis(host=_FALKOR_HOST, port=_FALKOR_PORT, decode_responses=True)
+    _RSTATE.ping()
+    _LOG.info(
+        "shared state ON: sessions + rate limits in Redis at %s:%s", _FALKOR_HOST, _FALKOR_PORT
+    )
+
+
+def _store_get(sid: str) -> dict | None:
+    """The shared session record {"owner","config","v"} or None (also None in local mode)."""
+    if _RSTATE is None:
+        return None
+    raw = _RSTATE.get(f"cf:sess:{sid}")
+    return _json.loads(raw) if raw else None
+
+
+def _store_put(sid: str, owner: str | None, config: dict) -> int:
+    """Write the shared record, bumping the version stamp; returns the new version."""
+    if _RSTATE is None:
+        return 0
+    rec = _store_get(sid) or {"owner": owner, "config": {}, "v": 0}
+    rec["owner"] = rec.get("owner") or owner
+    rec["config"] = config
+    rec["v"] = int(rec.get("v", 0)) + 1
+    _RSTATE.set(f"cf:sess:{sid}", _json.dumps(rec))
+    return rec["v"]
+
+
+# ---- observability floor (F5 T5): per-replica counters ---------------------------------------
+_METRICS: dict[str, int] = {}
+
+
+def _count(name: str) -> None:
+    _METRICS[name] = _METRICS.get(name, 0) + 1
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -231,6 +305,16 @@ async def _backend(session_id: str) -> GraphitiFalkorDBBackend:
     if not session_id:
         raise HTTPException(422, "session_id required")
     sess = _SESSIONS.setdefault(session_id, {"config": {}, "backend": None})
+    # F5 shared mode: adopt the store's config when our cached version is stale, so a config
+    # change made through ANY replica rebuilds this replica's backend too.
+    rec = _store_get(session_id)
+    if rec is not None and sess.get("v") != rec["v"]:
+        if sess["backend"] is not None:
+            await sess["backend"].close()
+        sess["backend"] = None
+        sess["generator"] = None
+        sess["config"] = dict(rec["config"])
+        sess["v"] = rec["v"]
     if sess["backend"] is None:
         c = sess["config"]
         cfg = GraphitiFalkorDBConfig.from_env(group_id=f"pg_{session_id}")
@@ -294,6 +378,24 @@ class PluginConfig(BaseModel):
 
 
 # ---- routes ----------------------------------------------------------------
+@app.middleware("http")
+async def _count_requests(request: Request, call_next):
+    response = await call_next(request)
+    _count("requests_total")
+    _count(f"responses_{response.status_code // 100}xx_total")
+    return response
+
+
+@app.get("/metrics", dependencies=[Depends(require_auth)])
+async def metrics():
+    """The F5 observability floor: per-replica counters in Prometheus text format (each
+    replica is scraped separately, per standard practice). Authed - metrics leak usage."""
+    from fastapi import Response
+
+    body = "\n".join(f"cogniflow_{k} {v}" for k, v in sorted(_METRICS.items()))
+    return Response(content=body + "\n", media_type="text/plain; version=0.0.4")
+
+
 @app.get("/api/health")
 async def health() -> dict:
     falkordb = False
@@ -336,6 +438,7 @@ async def plugins() -> dict:
 async def new_session(token: str | None = Depends(require_auth)) -> dict:
     sid = uuid.uuid4().hex[:12]
     _SESSIONS[sid] = {"config": {}, "backend": None, "owner": token}
+    _store_put(sid, token, {})  # shared mode: ownership visible to every replica
     return {"session_id": sid}
 
 
@@ -378,6 +481,8 @@ async def set_config(cfg: PluginConfig, token: str | None = Depends(require_auth
     if sess["backend"] is not None:
         await sess["backend"].close()
         sess["backend"] = None
+    # shared mode: publish the new config (version-stamped) so every replica rebuilds
+    sess["v"] = _store_put(cfg.session_id, token, sess["config"])
     return {"ok": True, "config": _safe_config(sess["config"])}
 
 

@@ -45,8 +45,13 @@ Do not read "baseline security" as "enterprise-ready." These are deliberately ou
   integration; a hostile operator with process access could read them.
 - **GDPR/CCPA deletion, retention, legal hold.** The append-only bi-temporal ledger conflicts
   with record-level erasure - a real architectural item, not a config flag.
-- **SOC2 / compliance posture**, **observability** (metrics/tracing), and **horizontal scale**
-  (the in-memory session dict + in-process write-back queue break multi-replica deployments).
+- **SOC2 / compliance posture** and full **observability** (tracing; only a `/metrics`
+  counter floor exists).
+- **Horizontal scale is now partially addressed (F5), honestly scoped:** with
+  `COGNIFLOW_SHARED_STATE=1`, session ownership/config and rate limits live in Redis and the
+  write-back journal is shared (`RedisJournal`), proven by a two-replica test
+  (`scripts/two_replica_proof.sh`). That makes the shell *production-deployable* behind a load
+  balancer - it is still not HA-audited, not k8s-packaged, and not "enterprise."
 
 ## Operator checklist before exposing beyond localhost
 

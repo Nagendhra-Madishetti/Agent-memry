@@ -124,6 +124,43 @@ class JsonFileJournal:
         return [_obs_from_dict(e) for e in self._entries.values()]
 
 
+class RedisJournal:
+    """The SHARED durable journal (F5): pending observations in one Redis hash (id -> json),
+    so "queued" survives process death AND is visible to every replica's ``recover()`` - the
+    documented production swap for ``JsonFileJournal``, behind the same Protocol.
+
+    FalkorDB speaks the Redis protocol, so the same server that holds the graph can hold the
+    journal - zero extra infrastructure. Fail-loud: a missing redis package or an unreachable
+    server raises at construction (never a silent fall back to in-process, which would quietly
+    void the durability guarantee)."""
+
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 6379,
+        *,
+        key: str = "cogniflow:writeback:journal",
+    ) -> None:
+        try:
+            import redis
+        except ImportError as e:  # pragma: no cover - redis ships with the [backends] extra
+            raise RuntimeError(
+                "RedisJournal needs the 'redis' package (installed with the [backends] extra)."
+            ) from e
+        self._r = redis.Redis(host=host, port=port, decode_responses=True)
+        self._key = key
+        self._r.ping()  # fail loud NOW, not on the first lost observation
+
+    def append(self, obs: Observation) -> None:
+        self._r.hset(self._key, obs.id, json.dumps(_obs_to_dict(obs)))
+
+    def remove(self, observation_id: str) -> None:
+        self._r.hdel(self._key, observation_id)
+
+    def load(self) -> list[Observation]:
+        return [_obs_from_dict(json.loads(v)) for v in self._r.hgetall(self._key).values()]
+
+
 @dataclass(frozen=True, slots=True)
 class EnqueueAck:
     """Returned immediately by ``enqueue`` - an acknowledgement, not a WriteReceipt."""
