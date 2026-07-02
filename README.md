@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/media/logo.png" alt="Cogniflow" width="180" />
+<img src="https://github.com/Nagendhra-web/cogniflow/raw/main/docs/media/logo.png" alt="Cogniflow" width="180" />
 
 # Cogniflow
 
@@ -85,7 +85,7 @@ timeline         -> Boston (2019 report) superseded by Denver (2022 press releas
 Open the live scrubber at http://localhost:3000/playground and drag the system-time slider
 across 2022; the answer flips in front of you:
 
-![System-time replay: scrubbing past the 2022 correction flips the belief Boston to Denver](docs/media/replay-scrubber.gif)
+![System-time replay: scrubbing past the 2022 correction flips the belief Boston to Denver](https://github.com/Nagendhra-web/cogniflow/raw/main/docs/media/replay-scrubber.gif)
 
 ### Install as a library
 
@@ -151,8 +151,8 @@ content hash and a reproduce command; scores are claims exactly the size of the 
 
 | Comparison | Chart |
 |---|---|
-| As-of questions vs LlamaIndex, LangChain, Haystack, and a temporal-graph ablation | ![As-of benchmark](docs/media/benchmark-asof.png) |
-| Current-fact questions (the honest tie) | ![Standard benchmark](docs/media/benchmark-standard.png) |
+| As-of questions vs LlamaIndex, LangChain, Haystack, and a temporal-graph ablation | ![As-of benchmark](https://github.com/Nagendhra-web/cogniflow/raw/main/docs/media/benchmark-asof.png) |
+| Current-fact questions (the honest tie) | ![Standard benchmark](https://github.com/Nagendhra-web/cogniflow/raw/main/docs/media/benchmark-standard.png) |
 
 Reproduce: `python demo/benchmark_frameworks.py`. Full per-question answers, methodology,
 and the measured evaluation floors (verify recall, faithfulness checker precision and recall)
