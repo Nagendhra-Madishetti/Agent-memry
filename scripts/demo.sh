@@ -19,8 +19,17 @@ fail() { printf '  \033[31mFAIL\033[0m %s\n' "$*"; exit 1; }
 # extract the HQ city from an audit response's belief statement(s)
 city() { grep -oE 'headquartered in [A-Za-z]+' | head -1 | awk '{print $NF}'; }
 
+bold "Waiting for the API at ${API} ..."
+for _ in $(seq 1 60); do
+  [ "$(curl -s -o /dev/null -w '%{http_code}' "${API}/api/health" 2>/dev/null || true)" = "200" ] && break
+  sleep 2
+done
+[ "$(curl -s -o /dev/null -w '%{http_code}' "${API}/api/health" 2>/dev/null || true)" = "200" ] \
+  || fail "API not reachable at ${API} - is 'docker compose up -d' running and healthy?"
+ok "API is up"
+
 bold "Seeding the Acme HQ scenario  (2019 filing: Boston -> 2022 filing: Denver)"
-curl -fsS "${AUTH[@]}" -X POST "${API}/api/demo/seed" >/dev/null || fail "seed failed (is the API up + token right?)"
+curl -fsS "${AUTH[@]}" -X POST "${API}/api/demo/seed" >/dev/null || fail "seed failed (token wrong? try COGNIFLOW_DEMO_TOKEN)"
 
 bold "Q1  Where is Acme HQ *now*?                         (event-time)"
 now=$(curl -fsS "${AUTH[@]}" "${API}/api/audit/current?session_id=${SID}" | city)

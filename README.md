@@ -34,8 +34,9 @@ Prereqs: Docker. No `.env`, no keys — the hero scenario is **key-free**.
 
 ```bash
 git clone https://github.com/Nagendhra-web/cogniflow && cd cogniflow
-docker compose up --build          # FalkorDB + API + web, secure-by-default (auth ON)
-bash scripts/demo.sh               # seed the Acme scenario, then ask the four questions
+docker compose up -d --build       # FalkorDB + API + web, secure-by-default (auth ON)
+bash scripts/demo.sh               # waits for the API, seeds Acme, asserts the four questions
+# docker compose logs -f           # follow logs   ·   docker compose down   # stop it
 ```
 
 `scripts/demo.sh` prints (and asserts):
