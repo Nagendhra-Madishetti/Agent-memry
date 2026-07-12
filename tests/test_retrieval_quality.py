@@ -9,20 +9,25 @@ import logging
 
 import pytest
 
-from cogniflow.backends._local_embedder import LocalDeterministicEmbedder
-from cogniflow.backends.embedders import (
+# The embedders module builds on graphiti's EmbedderClient interface; in the plain [dev]
+# environment (the default CI test job) the backends extra is absent, so skip cleanly there.
+# The integration lane and local dev (with [all]) run these for real.
+pytest.importorskip("graphiti_core")
+
+from cogniflow.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
+from cogniflow.backends.embedders import (  # noqa: E402
     EmbedderError,
     available_embedders,
     create_embedder,
     is_semantic,
     warn_if_non_semantic,
 )
-from cogniflow.context import (
+from cogniflow.context import (  # noqa: E402
     NON_SEMANTIC_RETRIEVAL_NOTE,
     OVERFETCH_SATURATED_NOTE,
     serve_context,
 )
-from cogniflow.core.types import RetrievalResult, ScoredBelief
+from cogniflow.core.types import RetrievalResult, ScoredBelief  # noqa: E402
 
 _HAS_FLAG = importlib.util.find_spec("FlagEmbedding") is not None
 
