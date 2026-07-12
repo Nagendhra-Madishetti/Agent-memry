@@ -9,7 +9,7 @@ description = "Bi-temporal RAG platform: cited, temporally-correct answers plus 
 readme = "README.md"
 requires-python = ">=3.10,<4"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Nagendhra-web", email = "nagendhra405@gmail.com" }]
+authors = [{ name = "Nagendhra Madishetti", email = "nagendhra405@gmail.com" }]
 keywords = ["rag", "temporal", "knowledge-graph", "agents", "falsification", "memory"]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
@@ -57,9 +57,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Nagendhra-web/cogniflow"
-Repository = "https://github.com/Nagendhra-web/cogniflow"
-Issues = "https://github.com/Nagendhra-web/cogniflow/issues"
+Homepage = "https://github.com/Open-Cognition-Labs/cogniflow"
+Repository = "https://github.com/Open-Cognition-Labs/cogniflow"
+Issues = "https://github.com/Open-Cognition-Labs/cogniflow/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cogniflow"]

@@ -20,7 +20,7 @@ HERE = pathlib.Path(__file__).parent
 DEMO = HERE / "demo_data.json"
 BENCH = HERE / "benchmark_data.json"
 OUT = HERE / "landing.html"
-REPO = "https://github.com/Nagendhra-web/cogniflow"
+REPO = "https://github.com/Open-Cognition-Labs/cogniflow"
 
 TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">

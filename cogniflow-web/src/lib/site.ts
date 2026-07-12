@@ -1,7 +1,7 @@
 export const site = {
   name: "Cogniflow",
   tagline: "The auditable, self-hostable belief ledger for agents.",
-  repo: "https://github.com/Nagendhra-web/cogniflow",
+  repo: "https://github.com/Open-Cognition-Labs/cogniflow",
   nav: [
     { href: "/playground", label: "Playground" },
     { href: "/plugins", label: "Plugins" },
