@@ -1,6 +1,6 @@
 """The embedder plug's payoff, made a permanent proof: with BGE-M3 a PARAPHRASE that shares
 almost no keywords with the stored fact still retrieves it ranked #1 - impossible under the
-BM25-lexical hash embedder. Needs FalkorDB + COGNIFLOW_EMBEDDER_API_KEY + the OKF bundle.
+BM25-lexical hash embedder. Needs FalkorDB + MEMRY_EMBEDDER_API_KEY + the OKF bundle.
 """
 
 from __future__ import annotations
@@ -22,12 +22,12 @@ try:
 except Exception:
     pass
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.context import serve_context  # noqa: E402
-from cogniflow.okf import ingest_bundle  # noqa: E402
+from memry.context import serve_context  # noqa: E402
+from memry.okf import ingest_bundle  # noqa: E402
 
 BUNDLE = pathlib.Path(__file__).resolve().parents[2] / "demo" / "okf_demo_bundle"
 
@@ -45,11 +45,11 @@ def _falkordb_up() -> bool:
 requires_embedder = pytest.mark.skipif(
     not (
         _falkordb_up()
-        and os.getenv("COGNIFLOW_EMBEDDER_API_KEY")
-        and os.getenv("COGNIFLOW_LLM_API_KEY")
+        and os.getenv("MEMRY_EMBEDDER_API_KEY")
+        and os.getenv("MEMRY_LLM_API_KEY")
         and BUNDLE.exists()
     ),
-    reason="requires FalkorDB, COGNIFLOW_EMBEDDER_API_KEY, COGNIFLOW_LLM_API_KEY, OKF bundle",
+    reason="requires FalkorDB, MEMRY_EMBEDDER_API_KEY, MEMRY_LLM_API_KEY, OKF bundle",
 )
 
 

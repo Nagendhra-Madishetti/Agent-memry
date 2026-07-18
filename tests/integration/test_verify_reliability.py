@@ -23,19 +23,19 @@ try:
 except Exception:
     pass
 
-from cogniflow.eval import score_falsification  # noqa: E402
-from cogniflow.eval_corpus import verify_cases  # noqa: E402
-from cogniflow.verification import LLMFalsificationPolicy, complete_from_env  # noqa: E402
+from memry.eval import score_falsification  # noqa: E402
+from memry.eval_corpus import verify_cases  # noqa: E402
+from memry.verification import LLMFalsificationPolicy, complete_from_env  # noqa: E402
 
 requires_llm = pytest.mark.skipif(
-    not os.getenv("COGNIFLOW_LLM_API_KEY"), reason="requires COGNIFLOW_LLM_API_KEY"
+    not os.getenv("MEMRY_LLM_API_KEY"), reason="requires MEMRY_LLM_API_KEY"
 )
 
 
 @pytest.mark.integration
 @requires_llm
 def test_verify_fact_reliability_is_measured() -> None:
-    # F3: the labeled corpus (cogniflow.eval_corpus, n=56, six fact-type families, balanced)
+    # F3: the labeled corpus (memry.eval_corpus, n=56, six fact-type families, balanced)
     # replaces the coin-flippy n=8 set. Bounds are RECALIBRATED FROM the measurement on this
     # corpus (documented in PROJECT_STATUS), never adjusted to make a run pass.
     cases = verify_cases()

@@ -14,5 +14,5 @@ March?"*. Each concept also carries an optional `fact` extension key (OKF permit
 keys) so the redefinition is a precise, deterministic temporal fact; without it, the body
 is ingested as prose and the engine extracts what it can.
 
-`demo/okf_head_to_head.py` ingests v1 then v2 into Cogniflow and runs the controlled
+`demo/okf_head_to_head.py` ingests v1 then v2 into Agent Memry and runs the controlled
 comparison against a plain vector RAG over the same files.

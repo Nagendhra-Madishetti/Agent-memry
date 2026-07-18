@@ -1,15 +1,15 @@
 # Two-replica overlay: the production-deployable shell (still NOT "enterprise").
 #   docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build
 #   bash scripts/two_replica_proof.sh
-# Both replicas run with COGNIFLOW_SHARED_STATE=1: session ownership/config and rate counters
+# Both replicas run with MEMRY_SHARED_STATE=1: session ownership/config and rate counters
 # live in Redis (the FalkorDB server), so any replica serves any session and the token-ownership
 # scoping semantics hold across replicas. Put a real load balancer in front for production.
 services:
   api:
     environment:
-      COGNIFLOW_SHARED_STATE: "1"
+      MEMRY_SHARED_STATE: "1"
       # a second VALID token so the proof can assert a true cross-token 403 (not just 401)
-      COGNIFLOW_API_TOKENS: "${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token},${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token}-other"
+      MEMRY_API_TOKENS: "${MEMRY_DEMO_TOKEN:-memry-demo-token},${MEMRY_DEMO_TOKEN:-memry-demo-token}-other"
 
   api2:
     build:
@@ -19,14 +19,14 @@ services:
       falkordb:
         condition: service_healthy
     environment:
-      COGNIFLOW_FALKORDB_HOST: falkordb
-      COGNIFLOW_FALKORDB_PORT: "6379"
-      COGNIFLOW_SHARED_STATE: "1"
-      COGNIFLOW_API_TOKENS: "${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token},${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token}-other"
-      COGNIFLOW_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
-      COGNIFLOW_LLM_API_KEY: ${COGNIFLOW_LLM_API_KEY:-}
-      COGNIFLOW_LLM_BASE_URL: ${COGNIFLOW_LLM_BASE_URL:-}
-      COGNIFLOW_LLM_MODEL: ${COGNIFLOW_LLM_MODEL:-}
-      COGNIFLOW_EMBEDDER_API_KEY: ${COGNIFLOW_EMBEDDER_API_KEY:-}
+      MEMRY_FALKORDB_HOST: falkordb
+      MEMRY_FALKORDB_PORT: "6379"
+      MEMRY_SHARED_STATE: "1"
+      MEMRY_API_TOKENS: "${MEMRY_DEMO_TOKEN:-memry-demo-token},${MEMRY_DEMO_TOKEN:-memry-demo-token}-other"
+      MEMRY_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      MEMRY_LLM_API_KEY: ${MEMRY_LLM_API_KEY:-}
+      MEMRY_LLM_BASE_URL: ${MEMRY_LLM_BASE_URL:-}
+      MEMRY_LLM_MODEL: ${MEMRY_LLM_MODEL:-}
+      MEMRY_EMBEDDER_API_KEY: ${MEMRY_EMBEDDER_API_KEY:-}
     ports:
       - "8001:8000"

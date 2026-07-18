@@ -1,6 +1,6 @@
 # The demo + the reranker 
 
-The product's face to a stranger: plain RAG vs Cogniflow on a deliberately confusable corpus,
+The product's face to a stranger: plain RAG vs Agent Memry on a deliberately confusable corpus,
 leading with the one thing plain RAG cannot do, showing the full cited answer with confidence,
 and settling the reranker question on measured evidence.
 
@@ -16,7 +16,7 @@ python demo/static_demo/build_page.py # inlines that JSON into index.html (no ne
 
 It leads with the **as-of axis** (framing A): plain RAG sometimes gets *now* right, so the
 honest, undefeatable headline is the past - "Where is Tesla headquartered *as of 2015*?" ->
-Cogniflow answers **Palo Alto** (the fact true then), plain RAG cannot answer it at all (it has
+Agent Memry answers **Palo Alto** (the fact true then), plain RAG cannot answer it at all (it has
 no temporal dimension). It then shows the **cited answer with `valid_at_source` confidence**
 (framing B) - a prose-derived fact is not dressed up as a deterministic structured one.
 
@@ -67,7 +67,7 @@ retrieval never returned. Position it that way.
 
 ## Run it yourself (reproducible, not marketing)
 `python demo/capture_demo.py` reproduces the captured run on your own FalkorDB; the live audit
-dashboard (`cogniflow.serving.audit.run(backend)`) is the interactive replay scrubber. A
+dashboard (`memry.serving.audit.run(backend)`) is the interactive replay scrubber. A
 skeptic can reproduce every number on the page.
 
 ## The landing page + the two-panel benchmark
@@ -81,7 +81,7 @@ retrieval, explicitly *not* "first at temporal RAG").
 
 **The benchmark (`python demo/benchmark.py` -> `benchmark_data.json`) is real and reproducible:**
 
-| panel | plain RAG | Cogniflow |
+| panel | plain RAG | Agent Memry |
 |---|---|---|
 | Standard (stable facts) | 4/4 | 4/4 (honest tie) |
 | As-of (past dates) | **0/4** | **4/4** |
@@ -99,7 +99,7 @@ not** the superseded one (a hedge that lists both is not an answer). This is the
 ## Run it yourself (reproducible, not marketing)
 `python demo/capture_demo.py` (the demo run) and `python demo/benchmark.py` (the two-panel
 benchmark) reproduce every number; the live audit dashboard
-(`cogniflow.serving.audit.run(backend)`) is the interactive replay scrubber. A skeptic can
+(`memry.serving.audit.run(backend)`) is the interactive replay scrubber. A skeptic can
 reproduce all of it. The fifteen-second-stranger comprehension check and the in-browser visual
 pass are the human steps that remain before launch.
 

@@ -1,13 +1,13 @@
 """Swappable corpus for the head-to-head demo. Edit freely and re-run.
 
 Each entry has `text` (what plain RAG indexes). Entries that are time-stamped facts
-also carry a `fact` triple + `year` (what Cogniflow ingests, with the year as the
+also carry a `fact` triple + `year` (what Agent Memry ingests, with the year as the
 fact's valid-from). Distractors have only `text`.
 
 The scenario: Acme Corp was HQ'd in Boston for years (lots of Boston text), then quietly
 moved to Denver (one understated update). Plain similarity retrieval favors the abundant,
 keyword-matching Boston text and, under top-k, drops the lone Denver update - so RAG
-answers the stale city. Cogniflow knows Denver superseded Boston and answers the current
+answers the stale city. Agent Memry knows Denver superseded Boston and answers the current
 one (and, asked as-of an earlier date, correctly answers Boston).
 """
 

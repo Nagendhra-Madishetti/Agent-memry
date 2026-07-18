@@ -1,10 +1,10 @@
 # ruff: noqa: E501
-"""Real two-panel benchmark: plain RAG vs Cogniflow, every number from a live run.
+"""Real two-panel benchmark: plain RAG vs Agent Memry, every number from a live run.
 
-Panel 1 - STANDARD questions (stable current facts): plain RAG and Cogniflow both do well.
-          An honest tie - Cogniflow inherits Graphiti's retrieval; it does not out-retrieve.
+Panel 1 - STANDARD questions (stable current facts): plain RAG and Agent Memry both do well.
+          An honest tie - Agent Memry inherits Graphiti's retrieval; it does not out-retrieve.
 Panel 2 - AS-OF questions (what was true at a past date): plain RAG has no time axis and
-          scores near-zero; Cogniflow answers from as-of-filtered context.
+          scores near-zero; Agent Memry answers from as-of-filtered context.
 
 CRITICAL - the corpus is FICTIONAL (invented companies/cities), on purpose. On famous real
 entities a large LLM already knows the history and would answer as-of questions from its
@@ -13,7 +13,7 @@ TRAINING, not from any temporal store - which confounds the test (measured: plai
 on facts the model has never seen - i.e. YOUR private/enterprise data - so we benchmark there.
 Dates live ONLY in metadata (valid_at), never in the fact text, so plain RAG genuinely cannot
 recover the past. The honesty about Panel 1 is what makes Panel 2 credible. Writes benchmark_data.json.
-Prereqs: FalkorDB, .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY.
+Prereqs: FalkorDB, .env with MEMRY_LLM_* and MEMRY_EMBEDDER_API_KEY.
 Run: PYTHONPATH=src python demo/benchmark.py
 """
 
@@ -42,14 +42,14 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 from nvidia_embeddings import NvidiaEmbedding  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.bridges.llamaindex import make_llm  # noqa: E402
-from cogniflow.core.types import Episode  # noqa: E402
-from cogniflow.generation import generate_answer  # noqa: E402
-from cogniflow.generators import create_generator_from_env  # noqa: E402
+from memry.bridges.llamaindex import make_llm  # noqa: E402
+from memry.core.types import Episode  # noqa: E402
+from memry.generation import generate_answer  # noqa: E402
+from memry.generators import create_generator_from_env  # noqa: E402
 
 UTC = timezone.utc
 GROUP = "demo_benchmark"
@@ -206,12 +206,12 @@ async def main() -> None:
             rows.append({
                 "q": item["q"], "expect": item["expect"],
                 "plain": p, "plain_hit": _hit(p, item["expect"], avoid),
-                "cogniflow": c, "cogniflow_hit": _hit(c, item["expect"], avoid),
+                "memry": c, "memry_hit": _hit(c, item["expect"], avoid),
             })
         panels[name] = {
             "n": len(rows),
             "plain_score": sum(r["plain_hit"] for r in rows),
-            "cogniflow_score": sum(r["cogniflow_hit"] for r in rows),
+            "memry_score": sum(r["memry_hit"] for r in rows),
             "rows": rows,
         }
 
@@ -223,7 +223,7 @@ async def main() -> None:
     for name in ("standard", "as_of"):
         p = panels[name]
         label = "STANDARD (stable facts)" if name == "standard" else "AS-OF (past dates)"
-        print(f"{label}: plain RAG {p['plain_score']}/{p['n']} Cogniflow {p['cogniflow_score']}/{p['n']}")
+        print(f"{label}: plain RAG {p['plain_score']}/{p['n']} Agent Memry {p['memry_score']}/{p['n']}")
     print("=" * 74)
     print(f"captured -> {OUT}")
     await backend.close()

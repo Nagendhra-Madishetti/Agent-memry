@@ -9,14 +9,14 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from cogniflow.core.types import (
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
 )
-from cogniflow.pipelines import temporal_rag_answer
+from memry.pipelines import temporal_rag_answer
 
 
 def _w(year: int) -> datetime:

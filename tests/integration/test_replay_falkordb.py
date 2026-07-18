@@ -23,14 +23,14 @@ try:
 except Exception:
     pass
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.core.types import Episode  # noqa: E402
+from memry.core.types import Episode  # noqa: E402
 
-HOST = os.getenv("COGNIFLOW_FALKORDB_HOST", "localhost")
-PORT = int(os.getenv("COGNIFLOW_FALKORDB_PORT", "6379"))
+HOST = os.getenv("MEMRY_FALKORDB_HOST", "localhost")
+PORT = int(os.getenv("MEMRY_FALKORDB_PORT", "6379"))
 
 
 def _falkordb_up() -> bool:
@@ -44,8 +44,8 @@ def _falkordb_up() -> bool:
 
 
 requires_stack = pytest.mark.skipif(
-    not (_falkordb_up() and os.getenv("COGNIFLOW_LLM_API_KEY")),
-    reason="requires a running FalkorDB and COGNIFLOW_LLM_API_KEY",
+    not (_falkordb_up() and os.getenv("MEMRY_LLM_API_KEY")),
+    reason="requires a running FalkorDB and MEMRY_LLM_API_KEY",
 )
 
 

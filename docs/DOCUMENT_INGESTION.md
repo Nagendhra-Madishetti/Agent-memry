@@ -1,6 +1,6 @@
 # Document ingestion - parser decision 
 
-Cogniflow's second front door ingests arbitrary documents (text, markdown, PDF) into the
+Agent Memry's second front door ingests arbitrary documents (text, markdown, PDF) into the
 temporal store via the same Episode/`write` path OKF uses. This records the parser
 decisions, made deliberately.
 
@@ -8,7 +8,7 @@ decisions, made deliberately.
 
 The 2026 frontier for visually-rich PDFs is **image-based indexing** (ColPali / ColQwen):
 index page *images* with a vision-language model, skip OCR and chunking. It beats text
-pipelines on plain document RAG. **It is incompatible with Cogniflow**, for a fundamental
+pipelines on plain document RAG. **It is incompatible with Agent Memry**, for a fundamental
 reason: ColPali produces page-image embeddings, and **you cannot attach a validity
 interval (`valid_at` / `invalid_at`) to an image embedding.** The engine operates on
 *facts* - text statements carrying temporal validity and provenance. Facts require text.

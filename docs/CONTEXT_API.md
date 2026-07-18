@@ -1,7 +1,7 @@
 # The context-serving API 
 
-Cogniflow as a standalone **context engine**: query in, temporally-correct *context* out,
-callable by any model. **The output is context, not an answer** - Cogniflow serves
+Agent Memry as a standalone **context engine**: query in, temporally-correct *context* out,
+callable by any model. **The output is context, not an answer** - Agent Memry serves
 validated, provenance-carrying facts; the consuming model generates the answer.
 
 ## Context API vs Audit API (two surfaces, one engine)
@@ -54,18 +54,18 @@ different context - temporally-correct context is the thing no other context API
 Both are **read-only** and **self-hostable** (they run in the caller's environment, so data
 never leaves), each behind an optional extra so the core carries no web/agent framework.
 
-**MCP** (`pip install 'cogniflow-rag[mcp]'`) - the primary "any model calls it" path:
+**MCP** (`pip install 'memry[mcp]'`) - the primary "any model calls it" path:
 ```python
-from cogniflow.serving import build_mcp_server
+from memry.serving import build_mcp_server
 server = build_mcp_server(substrate) # exposes a read-only get_context tool
 server.run() # stdio; any MCP client (Claude Desktop, Cursor, ...)
 ```
 
-**HTTP/REST** (`pip install 'cogniflow-rag[serve]'`) - for non-MCP consumers:
+**HTTP/REST** (`pip install 'memry[serve]'`) - for non-MCP consumers:
 ```python
-from cogniflow.serving import create_app
+from memry.serving import create_app
 app = create_app(substrate) # POST /context -> the G1 contract as JSON
-# cogniflow.serving.http.run(substrate) # uvicorn on 127.0.0.1 (loopback by default)
+# memry.serving.http.run(substrate) # uvicorn on 127.0.0.1 (loopback by default)
 ```
 
 Write-back is **not** on this surface - the read API never writes (the `record_observation`

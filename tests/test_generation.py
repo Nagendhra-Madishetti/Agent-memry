@@ -10,15 +10,15 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.types import (
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
 )
-from cogniflow.generation import build_prompt, generate_answer
-from cogniflow.generators import GeneratorError, create_generator
+from memry.generation import build_prompt, generate_answer
+from memry.generators import GeneratorError, create_generator
 
 
 def _dt(y: int) -> datetime:
@@ -73,16 +73,16 @@ class _FakeGenerator:
 # ---- generator plug (G1 / acceptance #6) -----------------------------------------------
 
 def test_generator_plug_selects_by_name_and_carries_model(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("COGNIFLOW_GENERATOR_API_KEY", raising=False)
-    monkeypatch.delenv("COGNIFLOW_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("MEMRY_GENERATOR_API_KEY", raising=False)
+    monkeypatch.delenv("MEMRY_LLM_API_KEY", raising=False)
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     g = create_generator("nvidia", api_key="x")
     assert g.model == "minimaxai/minimax-m3" # config-selected, model carried
 
 
 def test_generator_plug_fail_loud(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("COGNIFLOW_GENERATOR_API_KEY", raising=False)
-    monkeypatch.delenv("COGNIFLOW_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("MEMRY_GENERATOR_API_KEY", raising=False)
+    monkeypatch.delenv("MEMRY_LLM_API_KEY", raising=False)
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     with pytest.raises(GeneratorError):
         create_generator("nvidia") # no key -> raise, never a silent no-op
@@ -117,7 +117,7 @@ def test_answer_carries_confidence_and_provenance() -> None:
 
 
 def test_build_prompt_handles_empty_context() -> None:
-    from cogniflow.context import ContextResponse
+    from memry.context import ContextResponse
 
     p = build_prompt("anything", ContextResponse(query="anything", as_of=None))
     assert "no facts available" in p.lower()
@@ -129,7 +129,7 @@ def test_http_answer_surface_present_only_with_generator() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from cogniflow.serving import create_app
+    from memry.serving import create_app
 
     # without a generator, /answer is not mounted (context-only surface survives)
     ctx_only = TestClient(create_app(_FakeSubstrate()))
@@ -150,7 +150,7 @@ def test_http_answer_surface_present_only_with_generator() -> None:
 
 def test_mcp_get_answer_tool_present_only_with_generator() -> None:
     pytest.importorskip("mcp")
-    from cogniflow.serving import build_mcp_server
+    from memry.serving import build_mcp_server
 
     ctx_only = build_mcp_server(_FakeSubstrate())
     names = {t.name for t in asyncio.run(ctx_only.list_tools())}

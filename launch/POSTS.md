@@ -7,7 +7,7 @@ the public HEAD. Every post funnels to the same 60-second proof.*
 
 ## Show HN (skeptic-first, technical)
 
-**Title:** Show HN: Cogniflow - a RAG that can prove what it believed before a correction
+**Title:** Show HN: Agent Memry - a RAG that can prove what it believed before a correction
 
 **Body:**
 
@@ -16,7 +16,7 @@ worse, the correction leaks backward: ask "what did we know in 2021?" and you ge
 contaminated by things learned in 2022. For anything audit-shaped (compliance, incident
 review, "why did the agent do that?"), that is the whole problem.
 
-Cogniflow stores every fact on two axes - when it was true (valid time) and when the system
+Agent Memry stores every fact on two axes - when it was true (valid time) and when the system
 learned it (transaction time) - and ships **system-time replay with an un-knowing
 invariant**: replaying to 2021 returns the belief state of 2021, with later corrections
 correctly un-known. The invariant is enforced in CI against a live graph store (a FalkorDB
@@ -60,7 +60,7 @@ Three questions I would genuinely like answers to:
 Quick demo, no keys needed:
 
 ```
-git clone <repo> && cd cogniflow
+git clone <repo> && cd memry
 docker compose up -d --build
 bash scripts/demo.sh
 ```
@@ -91,7 +91,7 @@ Would love to know: what breaks when you run it on your docs?
 
 **Body:**
 
-Cogniflow is built on **graphiti-core's bi-temporal edges** (and speaks LlamaIndex on the
+Agent Memry is built on **graphiti-core's bi-temporal edges** (and speaks LlamaIndex on the
 agent side) - this community's work is the reason the second time axis exists at all, so
 posting it here first.
 

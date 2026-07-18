@@ -6,9 +6,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.types import Belief, RetrievalQuery
-from cogniflow.registry import DEFAULT_POLICIES, available_policies, create_policy
-from cogniflow.rerankers import (
+from memry.core.types import Belief, RetrievalQuery
+from memry.registry import DEFAULT_POLICIES, available_policies, create_policy
+from memry.rerankers import (
     NvidiaReranker,
     RerankerError,
     RerankerRetrievalPolicy,
@@ -59,8 +59,8 @@ def test_reranker_empty_candidates_is_safe() -> None:
 
 
 def test_create_reranker_fail_loud(monkeypatch: pytest.MonkeyPatch) -> None:
-    for var in ("COGNIFLOW_RERANKER_API_KEY", "COGNIFLOW_EMBEDDER_API_KEY",
-                "COGNIFLOW_LLM_API_KEY", "NVIDIA_API_KEY"):
+    for var in ("MEMRY_RERANKER_API_KEY", "MEMRY_EMBEDDER_API_KEY",
+                "MEMRY_LLM_API_KEY", "NVIDIA_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     with pytest.raises(RerankerError):
         create_reranker("nvidia-rerank") # no key -> raise, never a silent no-op

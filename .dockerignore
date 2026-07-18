@@ -6,7 +6,7 @@
 .env
 .pytest_cache
 .ruff_cache
-cogniflow-web/node_modules
-cogniflow-web/.next
+memry-web/node_modules
+memry-web/.next
 demo/static_demo
 *.png

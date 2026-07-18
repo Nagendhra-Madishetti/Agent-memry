@@ -8,13 +8,13 @@ import asyncio
 import json
 from datetime import datetime, timezone
 
-from cogniflow.context import (
+from memry.context import (
     ContextResponse,
     ServedFact,
     _normalize_source,
     serve_context,
 )
-from cogniflow.core.types import (
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalQuery,

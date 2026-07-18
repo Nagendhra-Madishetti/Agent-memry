@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cogniflow - the bi-temporal RAG platform</title>
-<meta name="description" content="Cogniflow: cited, temporally-correct answers plus system-time replay. Prove what your AI believed at any past moment. Self-hostable memory and audit layer for agents." />
+<title>Agent Memry - the bi-temporal RAG platform</title>
+<meta name="description" content="Agent Memry: cited, temporally-correct answers plus system-time replay. Prove what your AI believed at any past moment. Self-hostable memory and audit layer for agents." />
 <style>
   :root { --ink:#1c1e21; --mut:#5c6472; --brand:#e4551c; --line:#e8e5df; --bg:#fbfaf8; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -34,14 +34,14 @@
 </head>
 <body>
 <header class="wrap">
-  <img src="media/logo.png" alt="Cogniflow logo" />
-  <h1>Cogniflow</h1>
+  <img src="media/logo.png" alt="Agent Memry logo" />
+  <h1>Agent Memry</h1>
   <p class="tag">The bi-temporal RAG platform. Cited, temporally-correct answers plus the one
   capability the rest of the field lacks: replay what the system believed at any past moment,
   without leaking later corrections into the past.</p>
   <div class="cta">
-    <a class="primary" href="https://github.com/Open-Cognition-Labs/cogniflow">View on GitHub</a>
-    <a class="ghost" href="https://github.com/Open-Cognition-Labs/cogniflow#quick-start">60-second demo</a>
+    <a class="primary" href="https://github.com/Open-Cognition-Labs/memry">View on GitHub</a>
+    <a class="ghost" href="https://github.com/Open-Cognition-Labs/memry#quick-start">60-second demo</a>
   </div>
 </header>
 
@@ -50,7 +50,7 @@
   <p>Acme Corp's HQ was Boston (2019 filing), then Denver (2022 filing). Every RAG answers the
   first row. Only a bi-temporal system answers the third.</p>
   <table>
-    <tr><th>Question</th><th>Vector RAG</th><th>Valid-time RAG</th><th>Cogniflow</th></tr>
+    <tr><th>Question</th><th>Vector RAG</th><th>Valid-time RAG</th><th>Agent Memry</th></tr>
     <tr><td>Where is Acme HQ now?</td><td>Denver</td><td>Denver</td><td class="win">Denver</td></tr>
     <tr><td>Where was it in 2020?</td><td>no</td><td>Boston</td><td class="win">Boston</td></tr>
     <tr><td>What did we believe in 2021, before the correction?</td><td>no</td><td>no</td><td class="win">Boston, Denver un-known</td></tr>
@@ -83,13 +83,13 @@
     <li>Multi-replica: shared session state and durable shared journal, two-replica proof included.</li>
     <li>Pluggable embedder, reranker, generation model, and graph backend; fully local operation supported.</li>
   </ul>
-  <pre>git clone https://github.com/Open-Cognition-Labs/cogniflow &amp;&amp; cd cogniflow
+  <pre>git clone https://github.com/Open-Cognition-Labs/memry &amp;&amp; cd memry
 docker compose up -d --build
 bash scripts/demo.sh</pre>
 </section>
 
 <footer class="wrap">
-  Cogniflow. Apache-2.0. Self-hostable; your data never leaves your environment.
+  Agent Memry. Apache-2.0. Self-hostable; your data never leaves your environment.
 </footer>
 </body>
 </html>

@@ -17,22 +17,22 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.context import ServedFact
-from cogniflow.core.types import (
+from memry.context import ServedFact
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalQuery,
     RetrievalResult,
     ScoredBelief,
 )
-from cogniflow.faithfulness import (
+from memry.faithfulness import (
     FaithfulnessError,
     LexicalChecker,
     available_checkers,
     create_checker,
     decompose,
 )
-from cogniflow.generation import generate_answer
+from memry.generation import generate_answer
 
 
 def _dt(y: int) -> datetime:

@@ -24,15 +24,15 @@ except Exception:
 
 from graphiti_core.edges import EntityEdge  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.core.types import Episode, RetrievalQuery  # noqa: E402
+from memry.core.types import Episode, RetrievalQuery  # noqa: E402
 
-NEO4J_URI = os.getenv("COGNIFLOW_NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("COGNIFLOW_NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("COGNIFLOW_NEO4J_PASSWORD", "cogniflowtest")
+NEO4J_URI = os.getenv("MEMRY_NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.getenv("MEMRY_NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("MEMRY_NEO4J_PASSWORD", "memrytest")
 
 
 def _neo4j_up() -> bool:
@@ -48,8 +48,8 @@ def _neo4j_up() -> bool:
 
 
 requires_neo4j = pytest.mark.skipif(
-    not (_neo4j_up() and os.getenv("COGNIFLOW_LLM_API_KEY")),
-    reason="requires a reachable Neo4j and COGNIFLOW_LLM_API_KEY",
+    not (_neo4j_up() and os.getenv("MEMRY_LLM_API_KEY")),
+    reason="requires a reachable Neo4j and MEMRY_LLM_API_KEY",
 )
 
 

@@ -10,8 +10,8 @@ import pytest
 
 pytest.importorskip("graphiti_core") # the embedder layer wraps Graphiti's EmbedderClient
 
-from cogniflow.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
-from cogniflow.backends.embedders import (  # noqa: E402
+from memry.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
+from memry.backends.embedders import (  # noqa: E402
     EXCLUDED_MODELS,
     EmbedderDimensionMismatch,
     EmbedderError,
@@ -20,13 +20,13 @@ from cogniflow.backends.embedders import (  # noqa: E402
     check_embedding_dimension,
     create_embedder,
 )
-from cogniflow.backends.graphiti_falkordb import GraphitiFalkorDBConfig  # noqa: E402
+from memry.backends.graphiti_falkordb import GraphitiFalkorDBConfig  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
 def _no_ambient_key(monkeypatch: pytest.MonkeyPatch) -> None:
     # the fail-loud tests must not be rescued by an ambient key in the environment
-    monkeypatch.delenv("COGNIFLOW_EMBEDDER_API_KEY", raising=False)
+    monkeypatch.delenv("MEMRY_EMBEDDER_API_KEY", raising=False)
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
 
 

@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.conformance import assert_policy_conforms
-from cogniflow.core.types import Belief
-from cogniflow.registry import available_policies, create_policy
+from memry.conformance import assert_policy_conforms
+from memry.core.types import Belief
+from memry.registry import available_policies, create_policy
 
 
 def _dt(year: int) -> datetime:
@@ -76,7 +76,7 @@ def test_interval_overlap_no_earlier_or_nonoverlapping_candidate() -> None:
 
 
 def test_recency_ranker_orders_by_valid_at_desc() -> None:
-    from cogniflow.core.types import RetrievalQuery
+    from memry.core.types import RetrievalQuery
 
     policy = create_policy("retrieval", "recency")
     beliefs = [

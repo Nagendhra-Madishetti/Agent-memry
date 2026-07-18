@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from cogniflow import build_policies, create_policy
-from cogniflow.core.types import Belief
+from memry import build_policies, create_policy
+from memry.core.types import Belief
 
 # A config a deployment might load from YAML/env. Omitted families use named defaults.
 CONFIG = {

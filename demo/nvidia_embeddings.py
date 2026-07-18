@@ -2,7 +2,7 @@
 
 Used by the head-to-head demo so the plain-RAG baseline retrieves with *genuine*
 semantic embeddings (no mock), making its failure honest rather than rigged. Uses the
-same COGNIFLOW_LLM_API_KEY; stdlib HTTP only.
+same MEMRY_LLM_API_KEY; stdlib HTTP only.
 """
 
 from __future__ import annotations

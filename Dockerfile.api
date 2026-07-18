@@ -1,5 +1,5 @@
-# Cogniflow API - FastAPI over the temporal engine. Baseline-secure (see SECURITY.md):
-# runs with bearer-token auth when COGNIFLOW_API_TOKENS is set (the compose provisions one).
+# Agent Memry API - FastAPI over the temporal engine. Baseline-secure (see SECURITY.md):
+# runs with bearer-token auth when MEMRY_API_TOKENS is set (the compose provisions one).
 FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
@@ -11,13 +11,13 @@ RUN apt-get update \
 # Install the package + its runtime extras (graphiti/falkordb/llama-index + fastapi/uvicorn).
 COPY pyproject.toml README.md ./
 COPY src ./src
-COPY cogniflow-api ./cogniflow-api
+COPY memry-api ./memry-api
 RUN pip install --upgrade pip && pip install -e ".[all,serve]"
 
 # Bind all interfaces INSIDE the container (auth is what protects it, not the bind); the guard
 # in main.py refuses to run open on a non-loopback host, so a token MUST be provided.
-ENV COGNIFLOW_BIND_HOST=0.0.0.0 COGNIFLOW_PORT=8000
+ENV MEMRY_BIND_HOST=0.0.0.0 MEMRY_PORT=8000
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=12 \
     CMD curl -fsS http://localhost:8000/api/health || exit 1
-CMD ["python", "cogniflow-api/main.py"]
+CMD ["python", "memry-api/main.py"]

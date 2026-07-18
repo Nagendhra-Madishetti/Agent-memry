@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.types import (
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalQuery,
@@ -47,7 +47,7 @@ def test_http_context_endpoint_returns_context_not_answer() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from cogniflow.serving import create_app
+    from memry.serving import create_app
 
     client = TestClient(create_app(_FakeSubstrate()))
     assert client.get("/healthz").json()["status"] == "ok"
@@ -70,7 +70,7 @@ def test_http_endpoint_is_read_only() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from cogniflow.serving import create_app
+    from memry.serving import create_app
 
     client = TestClient(create_app(_FakeSubstrate()))
     # no write verb is exposed on the context resource
@@ -80,7 +80,7 @@ def test_http_endpoint_is_read_only() -> None:
 
 def test_mcp_server_builds_with_get_context_tool() -> None:
     pytest.importorskip("mcp")
-    from cogniflow.serving import build_mcp_server
+    from memry.serving import build_mcp_server
 
     server = build_mcp_server(_FakeSubstrate())
     tools = asyncio.run(server.list_tools())

@@ -1,6 +1,6 @@
-# Contributing to Cogniflow
+# Contributing to Agent Memry
 
-Cogniflow is built so you can extend it **without touching `core/`**. Every capability
+Agent Memry is built so you can extend it **without touching `core/`**. Every capability
 is a registered plugin certified by a conformance suite. If you can make the suite pass
 from your own module, your contribution is done - and if you ever *have* to edit `core/`
 to add a plugin, that is a bug in our extension points, not in your code: please open an
@@ -8,7 +8,7 @@ issue, you have found a leak.
 
 ## The contract is the conformance suite
 
-The public contracts live in `cogniflow.core` and are SemVer'd. A contribution is
+The public contracts live in `memry.core` and are SemVer'd. A contribution is
 "correct" when it passes the matching conformance suite - the same suite the built-in
 implementations pass. We never weaken a check to accept a contribution or a backend; if a
 check blocks you, the fix is in the code or the contract, never the check.
@@ -24,7 +24,7 @@ the exact command that certifies it. The extension points:
 | Substrate backend | implement `AsyncSubstrate` | `run_conformance_async(backend)` |
 | Audit ledger | implement `AuditLedger` | replay invariants (see EXTENDING) |
 | Retriever / Postprocessor / Tool (LlamaIndex) | subclass the bridge base | bridge tests |
-| Replay exporter / Eval scenario | `cogniflow.eval` harness | precision/recall report |
+| Replay exporter / Eval scenario | `memry.eval` harness | precision/recall report |
 
 ## Workflow
 

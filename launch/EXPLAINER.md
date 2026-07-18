@@ -1,6 +1,6 @@
 # Why a valid-time filter can't do system-time replay
 
-*The canonical explainer for Cogniflow (draft - publish with the launch). All claims scoped;
+*The canonical explainer for Agent Memry (draft - publish with the launch). All claims scoped;
 the runnable proof is `docker compose up && bash scripts/demo.sh` from the repo.*
 
 ## The two time axes
@@ -74,7 +74,7 @@ ever leaks a later correction into the past, CI goes red.
 ## Try the proof
 
 ```bash
-git clone <repo> && cd cogniflow
+git clone <repo> && cd memry
 docker compose up -d --build
 bash scripts/demo.sh # now=Denver · 2020=Boston · replay(2021)=Boston, Denver un-known
 ```

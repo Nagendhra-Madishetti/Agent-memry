@@ -20,7 +20,7 @@ context API never renders the ledger. Both are read-only and self-hostable.
 
 ## Two temporal axes (do not conflate them)
 
-Cogniflow is **bi-temporal**, so "replay" is two different questions:
+Agent Memry is **bi-temporal**, so "replay" is two different questions:
 
 - **Event-time axis** - *what was TRUE as of T* (`/audit/event?as_of=T`, over
   `event_time_query`). This is the recognizable demo: scrub to April -> the 7-day definition,
@@ -80,9 +80,9 @@ survived to A.3's machine output, now visible to a person.
 ## Run it (self-hostable, loopback by default)
 
 ```python
-from cogniflow.serving import create_audit_app # FastAPI app over an AuditLedger
+from memry.serving import create_audit_app # FastAPI app over an AuditLedger
 app = create_audit_app(backend)
-# or: cogniflow.serving.audit.run(backend) # uvicorn on 127.0.0.1:8078
+# or: memry.serving.audit.run(backend) # uvicorn on 127.0.0.1:8078
 ```
 
 Behind the `[serve]` extra. Read-only and local: the ledger never leaves the reader's

@@ -3,7 +3,7 @@ different answers, because a fact was superseded in between.
 
 Prerequisites:
  - a running FalkorDB: docker run -d -p 6379:6379 falkordb/falkordb
- - a .env with COGNIFLOW_LLM_API_KEY / COGNIFLOW_LLM_BASE_URL / COGNIFLOW_LLM_MODEL
+ - a .env with MEMRY_LLM_API_KEY / MEMRY_LLM_BASE_URL / MEMRY_LLM_MODEL
     (any OpenAI-compatible endpoint)
  - install: pip install -e ".[all]" python-dotenv
 
@@ -15,8 +15,8 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from cogniflow.backends.graphiti_falkordb import GraphitiFalkorDBBackend, GraphitiFalkorDBConfig
-from cogniflow.core.types import Episode, RetrievalQuery
+from memry.backends.graphiti_falkordb import GraphitiFalkorDBBackend, GraphitiFalkorDBConfig
+from memry.core.types import Episode, RetrievalQuery
 
 
 def _dt(year: int) -> datetime:

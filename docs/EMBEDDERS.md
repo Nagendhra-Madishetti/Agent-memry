@@ -17,13 +17,13 @@ validates it at startup (safety property B) instead of trusting a hard-coded val
 | config `embedder` | implementation | key needed |
 |---|---|---|
 | `hash` (default) | `LocalDeterministicEmbedder` - non-semantic, SHA-256-derived | none |
-| `bge-m3` | NVIDIA API, model `baai/bge-m3` (1024-dim) | `COGNIFLOW_EMBEDDER_API_KEY` |
-| `nvidia-e5` | NVIDIA API, model `nvidia/nv-embedqa-e5-v5` (1024-dim) | `COGNIFLOW_EMBEDDER_API_KEY` |
+| `bge-m3` | NVIDIA API, model `baai/bge-m3` (1024-dim) | `MEMRY_EMBEDDER_API_KEY` |
+| `nvidia-e5` | NVIDIA API, model `nvidia/nv-embedqa-e5-v5` (1024-dim) | `MEMRY_EMBEDDER_API_KEY` |
 
-Set it via env (`COGNIFLOW_EMBEDDER=bge-m3`) or `GraphitiFalkorDBConfig(embedder="bge-m3")`.
+Set it via env (`MEMRY_EMBEDDER=bge-m3`) or `GraphitiFalkorDBConfig(embedder="bge-m3")`.
 Extensible to `openai`, `sentence-transformers`, or a self-hosted BGE-M3 later with no code
 change to callers - just another registry entry. Override the model string with
-`COGNIFLOW_EMBEDDER_MODEL` / the `embedder_model` config field.
+`MEMRY_EMBEDDER_MODEL` / the `embedder_model` config field.
 
 ## Safety property A - fail-loud, never silent fallback to hash
 

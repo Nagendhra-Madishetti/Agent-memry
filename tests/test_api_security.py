@@ -17,7 +17,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-_MAIN = Path(__file__).resolve().parents[1] / "cogniflow-api" / "main.py"
+_MAIN = Path(__file__).resolve().parents[1] / "memry-api" / "main.py"
 _H = {"Authorization": "Bearer secret"}
 
 
@@ -116,7 +116,7 @@ def test_safe_config_redacts_secrets(secured) -> None:
 
 
 def test_open_mode_runs_without_auth() -> None:
-    # default env (no COGNIFLOW_API_TOKENS) -> open/dev mode; endpoints don't 401 (startup warned)
+    # default env (no MEMRY_API_TOKENS) -> open/dev mode; endpoints don't 401 (startup warned)
     main = _load_main()
     main._SESSIONS.clear()
     assert TestClient(main.app).get("/api/plugins").status_code == 200
@@ -124,8 +124,8 @@ def test_open_mode_runs_without_auth() -> None:
 
 def test_refuses_to_start_open_on_public_bind(monkeypatch: pytest.MonkeyPatch) -> None:
     # fail-loud: unauthenticated + non-loopback bind must refuse to start, never silently open
-    monkeypatch.setenv("COGNIFLOW_BIND_HOST", "0.0.0.0")
-    monkeypatch.delenv("COGNIFLOW_API_TOKENS", raising=False)
-    monkeypatch.delenv("COGNIFLOW_ALLOW_OPEN", raising=False)
+    monkeypatch.setenv("MEMRY_BIND_HOST", "0.0.0.0")
+    monkeypatch.delenv("MEMRY_API_TOKENS", raising=False)
+    monkeypatch.delenv("MEMRY_ALLOW_OPEN", raising=False)
     with pytest.raises(RuntimeError):
         _load_main()

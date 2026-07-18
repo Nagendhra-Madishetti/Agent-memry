@@ -1,10 +1,10 @@
 """module head-to-head over a real PDF corpus (acceptance #7).
 
-Same RAG-wrong / Cogniflow-right + replay demo as module, now over PDF *documents*
+Same RAG-wrong / Agent Memry-right + replay demo as module, now over PDF *documents*
 instead of OKF concepts. Two versions of a company report (HQ Boston -> Denver). Same
 LLM, same pipeline shape; only the memory layer differs.
 
-Prereqs: FalkorDB running, .env with COGNIFLOW_LLM_*, `pip install -e ".[all,documents]"`.
+Prereqs: FalkorDB running, .env with MEMRY_LLM_*, `pip install -e ".[all,documents]"`.
 Run: PYTHONPATH=src python demo/doc_head_to_head.py
 """
 
@@ -21,13 +21,13 @@ from llama_index.core import Document, VectorStoreIndex  # noqa: E402
 from nvidia_embeddings import NvidiaEmbedding  # noqa: E402
 from pypdf import PdfReader  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.bridges.llamaindex import make_llm  # noqa: E402
-from cogniflow.documents import ingest_document  # noqa: E402
-from cogniflow.pipelines import temporal_rag_answer  # noqa: E402
+from memry.bridges.llamaindex import make_llm  # noqa: E402
+from memry.documents import ingest_document  # noqa: E402
+from memry.pipelines import temporal_rag_answer  # noqa: E402
 
 CORPUS = pathlib.Path(__file__).parent / "doc_demo_corpus"
 Q = "Where is Acme Corp headquartered?"
@@ -44,7 +44,7 @@ def run_plain_rag(cfg: GraphitiFalkorDBConfig) -> str:
     return str(engine.query(Q)).strip()
 
 
-async def run_cogniflow(cfg: GraphitiFalkorDBConfig) -> dict:
+async def run_memry(cfg: GraphitiFalkorDBConfig) -> dict:
     from falkordb import FalkorDB
 
     try:
@@ -79,17 +79,17 @@ def main() -> None:
     print("=" * 80)
 
     rag = run_plain_rag(cfg)
-    cf = asyncio.run(run_cogniflow(cfg))
+    cf = asyncio.run(run_memry(cfg))
 
     rag_stale = "Boston" in rag and "Denver" not in rag
     print("\n--- PLAIN RAG (vector over both PDF reports, top-3) ---")
     print(f" ANSWER: {rag}")
     print(f" VERDICT: {'STALE (Boston)' if rag_stale else 'see answer'}")
-    print("\n--- COGNIFLOW-RAG (temporal, as_of = now) ---")
+    print("\n--- MEMRY-RAG (temporal, as_of = now) ---")
     print(f" facts: {cf['now'].facts}")
     print(f" ANSWER: {cf['now'].answer}")
     print(f" VERDICT: {'CURRENT (Denver)' if 'Denver' in cf['now'].answer else 'see answer'}")
-    print("\n--- COGNIFLOW-RAG (temporal, as_of = 2020 = replay) ---")
+    print("\n--- MEMRY-RAG (temporal, as_of = 2020 = replay) ---")
     print(f" facts: {cf['past'].facts}")
     print(f" ANSWER: {cf['past'].answer}")
     print(f" VERDICT: {'REPLAYED (Boston)' if 'Boston' in cf['past'].answer else 'see answer'}")

@@ -1,4 +1,4 @@
-Cogniflow
+Agent Memry
 Copyright 2026 Nagendhra Madishetti
 
 This product is licensed under the Apache License, Version 2.0 (the "License");
@@ -13,5 +13,5 @@ Third-party components (declared as optional dependencies, not bundled):
  - falkordb - MIT License (FalkorDB Ltd.)
 
 These are pulled in only when the corresponding optional extras are installed.
-The cogniflow core package imports none of them; it defines framework-neutral
+The memry core package imports none of them; it defines framework-neutral
 contracts that backends and bridges adapt to.

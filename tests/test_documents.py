@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.types import FalsificationVerdict, RetrievalResult, WriteReceipt
-from cogniflow.documents import (
+from memry.core.types import FalsificationVerdict, RetrievalResult, WriteReceipt
+from memry.documents import (
     DocBlock,
     chunk_blocks,
     document_to_episodes,

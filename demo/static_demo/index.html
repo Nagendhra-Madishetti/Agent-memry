@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cogniflow - the RAG that knows *when*</title>
+<title>Agent Memry - the RAG that knows *when*</title>
 <style>
  body{font:15px/1.6 system-ui,sans-serif;margin:0;background:#0f1115;color:#e8eaed}
  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 60px}
@@ -25,14 +25,14 @@
  a{color:#7aa2ff}
 </style></head>
 <body><div class="wrap">
-<h1>Cogniflow - the RAG that knows <em>when</em></h1>
+<h1>Agent Memry - the RAG that knows <em>when</em></h1>
 <p class="tag">Same corpus, same model. The only difference is memory. A real captured run - not a mockup.</p>
 
 <div class="card lead">
  <h2>The one thing plain RAG can't do: answer "as of"</h2>
  <div class="q" id="q"></div>
- <div class="row"><div class="k">Cogniflow - now</div><div class="a" id="now"></div></div>
- <div class="row"><div class="k">Cogniflow - as of 2015</div><div class="a" id="past"></div></div>
+ <div class="row"><div class="k">Agent Memry - now</div><div class="a" id="now"></div></div>
+ <div class="row"><div class="k">Agent Memry - as of 2015</div><div class="a" id="past"></div></div>
  <div class="row"><div class="k bad">Plain RAG</div><div class="a bad" id="plain"></div></div>
 </div>
 
@@ -81,6 +81,6 @@ document.getElementById("weak").textContent = D.weak_context.answer;
 document.getElementById("foot").innerHTML =
   `Captured ${D.captured_at} over a ${D.corpus_size}-fact confusable corpus. `+
   `Run it yourself: <code>python demo/capture_demo.py</code> (reproduces this run) and `+
-  `<code>cogniflow.serving.audit.run(backend)</code> (the live replay dashboard).`;
+  `<code>memry.serving.audit.run(backend)</code> (the live replay dashboard).`;
 </script>
 </body></html>

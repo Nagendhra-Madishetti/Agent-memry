@@ -9,7 +9,7 @@ import urllib.error
 
 import pytest
 
-from cogniflow.generators import _urlopen_json
+from memry.generators import _urlopen_json
 
 
 class _FakeResp(io.BytesIO):

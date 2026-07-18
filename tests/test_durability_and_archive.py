@@ -7,18 +7,18 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from cogniflow.core.archive import (
+from memry.core.archive import (
     InMemoryArchive,
     bitemporal_query_archived,
 )
-from cogniflow.core.audit import bitemporal_query
-from cogniflow.core.types import (
+from memry.core.audit import bitemporal_query
+from memry.core.types import (
     Belief,
     FalsificationVerdict,
     RetrievalResult,
     WriteReceipt,
 )
-from cogniflow.writeback import JsonFileJournal, Observation, WriteBackQueue
+from memry.writeback import JsonFileJournal, Observation, WriteBackQueue
 
 
 def _w(year: int) -> datetime:

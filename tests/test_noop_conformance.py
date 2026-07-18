@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from cogniflow.backends.noop import NoOpBackend
-from cogniflow.conformance.suite import assert_conforms, run_conformance
-from cogniflow.core.contracts import Substrate
+from memry.backends.noop import NoOpBackend
+from memry.conformance.suite import assert_conforms, run_conformance
+from memry.core.contracts import Substrate
 
 
 def test_noop_is_a_substrate() -> None:

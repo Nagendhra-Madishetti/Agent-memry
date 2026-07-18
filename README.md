@@ -1,8 +1,8 @@
 <div align="center">
 
-![Cogniflow](docs/media/logo.png)
+![Agent Memry](docs/media/logo.png)
 
-# Cogniflow
+# Agent Memry
 
 **The bi-temporal RAG platform. Prove what your AI knew, and when.**
 
@@ -10,7 +10,7 @@ Any document in, a cited and temporally-correct answer out, plus the capability 
 the field lacks: replay what the system believed at any past moment, without leaking later
 corrections into the past.
 
-[![ci](https://github.com/Open-Cognition-Labs/cogniflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Open-Cognition-Labs/cogniflow/actions/workflows/ci.yml)
+[![ci](https://github.com/Open-Cognition-Labs/memry/actions/workflows/ci.yml/badge.svg)](https://github.com/Open-Cognition-Labs/memry/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
@@ -24,7 +24,7 @@ corrections into the past.
 
 ---
 
-## Why Cogniflow
+## Why Agent Memry
 
 Every fact is stored on two independent time axes: when it was true in the world (event
 time) and when the system learned it (system time). The second axis is what makes answers
@@ -33,7 +33,7 @@ defensible rather than merely plausible.
 Consider one fact that changed: Acme Corp's HQ was Boston (2019 filing), then Denver
 (2022 filing).
 
-| Question | Vector RAG | Valid-time RAG | Cogniflow |
+| Question | Vector RAG | Valid-time RAG | Agent Memry |
 |---|---|---|---|
 | Where is Acme HQ now? | ✅ Denver | ✅ Denver | ✅ Denver |
 | Where was it in 2020? | ❌ | ✅ Boston | ✅ Boston |
@@ -68,7 +68,7 @@ the un-knowing invariant, enforced in CI against a live graph store.
 Prereqs: Docker. No API keys required for the demo.
 
 ```bash
-git clone https://github.com/Open-Cognition-Labs/cogniflow && cd cogniflow
+git clone https://github.com/Open-Cognition-Labs/memry && cd memry
 docker compose up -d --build
 bash scripts/demo.sh
 ```
@@ -90,13 +90,13 @@ across 2022; the answer flips in front of you:
 ### Install as a library
 
 ```bash
-pip install cogniflow-rag          # import cogniflow
-pip install "cogniflow-rag[all,serve]"   # backends + the platform API
+pip install memry          # import memry
+pip install "memry[all,serve]"   # backends + the platform API
 ```
 
 ## Architecture
 
-<img width="1060" height="923" alt="Cogniflow architecture" src="docs/media/architecture.png" />
+<img width="1060" height="923" alt="Agent Memry architecture" src="docs/media/architecture.png" />
 
 ```
                           +---------------------------------------------+
@@ -128,7 +128,7 @@ pip install "cogniflow-rag[all,serve]"   # backends + the platform API
                                                  +------------------------------------+
 ```
 
-The core is dependency-free: `cogniflow.core` imports only the standard library. Storage,
+The core is dependency-free: `memry.core` imports only the standard library. Storage,
 models, and retrieval are adapters behind stable interfaces, selected by configuration.
 
 ### The bi-temporal model
@@ -160,11 +160,11 @@ are in the web app's Benchmark page and [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## API
 
-Every route except `/api/health` requires a bearer token (`COGNIFLOW_API_TOKENS`; the compose
-stack provisions `cogniflow-demo-token`). A session is scoped to the token that created it.
+Every route except `/api/health` requires a bearer token (`MEMRY_API_TOKENS`; the compose
+stack provisions `memry-demo-token`). A session is scoped to the token that created it.
 
 ```bash
-TOKEN=cogniflow-demo-token
+TOKEN=memry-demo-token
 API=http://localhost:8000
 H="Authorization: Bearer $TOKEN"
 
@@ -186,16 +186,16 @@ curl -H "$H" -F session_id=mine -F reference_time=2019-01-01 \
      -F file=@your_report.pdf "$API/api/ingest"
 ```
 
-For semantic retrieval configure a real embedder: `COGNIFLOW_EMBEDDER=bge-m3-local`
-(key-free, requires the `[embeddings]` extra) or `COGNIFLOW_EMBEDDER=bge-m3` with
-`COGNIFLOW_EMBEDDER_API_KEY`. The key-free boot default (`hash`) is lexical and states so
+For semantic retrieval configure a real embedder: `MEMRY_EMBEDDER=bge-m3-local`
+(key-free, requires the `[embeddings]` extra) or `MEMRY_EMBEDDER=bge-m3` with
+`MEMRY_EMBEDDER_API_KEY`. The key-free boot default (`hash`) is lexical and states so
 loudly in every response until a real embedder is configured.
 
 ## Deployment
 
 - Local and trusted environments: `docker compose up -d --build`.
 - Multi-replica: `docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d`
-  with `COGNIFLOW_SHARED_STATE=1`; verify with `bash scripts/two_replica_proof.sh`.
+  with `MEMRY_SHARED_STATE=1`; verify with `bash scripts/two_replica_proof.sh`.
 - Operations: an authenticated `/metrics` endpoint exposes per-replica counters.
 - Security posture, scope, and the operator checklist: [SECURITY.md](SECURITY.md).
   Project status and measured evaluation floors: [PROJECT_STATUS.md](PROJECT_STATUS.md).

@@ -4,7 +4,7 @@ Writes demo/static_demo/demo_data.json (a real captured run - never faked) and p
 report: the as-of head-to-head (the lead), the cited answer with confidence, the reranker
 lift (off vs on), and the weak-context faithfulness check.
 
-Prereqs: FalkorDB, .env with COGNIFLOW_LLM_* and COGNIFLOW_EMBEDDER_API_KEY.
+Prereqs: FalkorDB, .env with MEMRY_LLM_* and MEMRY_EMBEDDER_API_KEY.
 Run: PYTHONPATH=src python demo/capture_demo.py
 """
 
@@ -20,13 +20,13 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 from confusable_corpus import AS_OF_CASE, EPISODES, GOLDEN, build  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.context import serve_context  # noqa: E402
-from cogniflow.generation import generate_answer  # noqa: E402
-from cogniflow.generators import create_generator_from_env  # noqa: E402
+from memry.context import serve_context  # noqa: E402
+from memry.generation import generate_answer  # noqa: E402
+from memry.generators import create_generator_from_env  # noqa: E402
 
 UTC = timezone.utc
 GROUP = "demo_confusable"

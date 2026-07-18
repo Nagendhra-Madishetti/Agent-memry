@@ -5,12 +5,12 @@ difference is the memory layer:
  - Plain RAG indexes the accumulated concept files (both the March and June definitions)
     and retrieves by similarity - it has no way to mark which is current, so it surfaces
     the stale/ambiguous definition.
- - Cogniflow ingests v1 then v2; ingestion supersedes the old definition. It answers the
+ - Agent Memry ingests v1 then v2; ingestion supersedes the old definition. It answers the
     current one for "now" and replays the old one for as_of=March.
 
 The win is temporal correctness (currency + as-of replay), NOT recall.
 
-Prereqs: FalkorDB running, a .env with COGNIFLOW_LLM_*, `pip install -e ".[all,okf]"`.
+Prereqs: FalkorDB running, a .env with MEMRY_LLM_*, `pip install -e ".[all,okf]"`.
 Run: PYTHONPATH=src python demo/okf_head_to_head.py
 """
 
@@ -26,13 +26,13 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from llama_index.core import Document, VectorStoreIndex  # noqa: E402
 from nvidia_embeddings import NvidiaEmbedding  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.bridges.llamaindex import make_llm  # noqa: E402
-from cogniflow.okf import ingest_bundle, parse_bundle  # noqa: E402
-from cogniflow.pipelines import temporal_rag_answer  # noqa: E402
+from memry.bridges.llamaindex import make_llm  # noqa: E402
+from memry.okf import ingest_bundle, parse_bundle  # noqa: E402
+from memry.pipelines import temporal_rag_answer  # noqa: E402
 
 BUNDLE = pathlib.Path(__file__).parent / "okf_demo_bundle"
 QUESTION = "How is Weekly Active Users currently defined? State the trailing-window length."
@@ -50,7 +50,7 @@ def run_plain_rag(cfg: GraphitiFalkorDBConfig) -> tuple[str, list[str]]:
     return str(resp).strip(), [n.node.get_content().strip()[:80] for n in resp.source_nodes]
 
 
-async def run_cogniflow(cfg: GraphitiFalkorDBConfig) -> dict:
+async def run_memry(cfg: GraphitiFalkorDBConfig) -> dict:
     from falkordb import FalkorDB
 
     try:
@@ -84,7 +84,7 @@ def main() -> None:
     print("=" * 80)
 
     rag_answer, rag_src = run_plain_rag(cfg)
-    cf = asyncio.run(run_cogniflow(cfg))
+    cf = asyncio.run(run_memry(cfg))
 
     print("\n--- PLAIN RAG (vector over accumulated v1+v2 files, top-2) ---")
     for s in rag_src:
@@ -92,12 +92,12 @@ def main() -> None:
     print(f" ANSWER: {rag_answer}")
     print(f" VERDICT: {'STALE/AMBIGUOUS (surfaces 7-day)' if '7' in rag_answer else 'check'}")
 
-    print("\n--- COGNIFLOW-RAG (temporal, as_of = now) ---")
+    print("\n--- MEMRY-RAG (temporal, as_of = now) ---")
     print(f" facts: {cf['now'].facts}")
     print(f" ANSWER: {cf['now'].answer}")
     print(f" VERDICT: {'CURRENT (28-day)' if '28' in cf['now'].answer else 'check'}")
 
-    print("\n--- COGNIFLOW-RAG (temporal, as_of = March 2026 = replay) ---")
+    print("\n--- MEMRY-RAG (temporal, as_of = March 2026 = replay) ---")
     print(f" facts: {cf['march'].facts}")
     print(f" ANSWER: {cf['march'].answer}")
     print(f" VERDICT: {'REPLAYED OLD (7-day)' if '7' in cf['march'].answer else 'check'}")

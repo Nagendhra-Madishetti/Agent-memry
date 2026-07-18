@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Build the Cogniflow landing page from REAL captured runs.
+"""Build the Agent Memry landing page from REAL captured runs.
 
 Inlines demo_data.json (the as-of head-to-head) and benchmark_data.json (the two-panel
 benchmark) into a self-contained landing.html - no build step, no CDN, no fabricated numbers.
@@ -20,12 +20,12 @@ HERE = pathlib.Path(__file__).parent
 DEMO = HERE / "demo_data.json"
 BENCH = HERE / "benchmark_data.json"
 OUT = HERE / "landing.html"
-REPO = "https://github.com/Open-Cognition-Labs/cogniflow"
+REPO = "https://github.com/Open-Cognition-Labs/memry"
 
 TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cogniflow - the auditable, self-hostable belief ledger for agents</title>
+<title>Agent Memry - the auditable, self-hostable belief ledger for agents</title>
 <style>
  :root{--bg:#0f1115;--card:#161922;--line:#262a35;--fg:#e8eaed;--mut:#9aa4b2;--win:#56d39a;--warn:#e2c04b;--miss:#5b6472}
  *{box-sizing:border-box}
@@ -69,7 +69,7 @@ TEMPLATE = """<!doctype html>
 <section>
  <p class="eyebrow">Self-hostable &middot; open source (Apache-2.0) &middot; built on Graphiti &times; LlamaIndex</p>
  <h1>The auditable, self-hostable belief ledger for agents.</h1>
- <p class="sub">Plain RAG can tell you what's true <em>now</em>. Cogniflow tells you what your agent believed at any <em>past</em> moment - and proves it. Temporally-correct context and cited answers, running in your own VPC, where your data never leaves.</p>
+ <p class="sub">Plain RAG can tell you what's true <em>now</em>. Agent Memry tells you what your agent believed at any <em>past</em> moment - and proves it. Temporally-correct context and cited answers, running in your own VPC, where your data never leaves.</p>
  <div class="cta">
   <a class="btn p" href="index.html">See the live head-to-head &rarr;</a>
   <a class="btn s" href="__REPO__">Read the code</a>
@@ -80,12 +80,12 @@ TEMPLATE = """<!doctype html>
 <section>
  <p class="eyebrow">The one thing plain RAG can't do</p>
  <h2>Ask "as of when?"</h2>
- <p class="lede">Modern RAG (and hosted memory) has no time axis. It answers from whatever it retrieves today. Cogniflow filters context to the moment you ask about, so the answer is temporally correct - and cites the fact it stood on.</p>
+ <p class="lede">Modern RAG (and hosted memory) has no time axis. It answers from whatever it retrieves today. Agent Memry filters context to the moment you ask about, so the answer is temporally correct - and cites the fact it stood on.</p>
  <table>
   <thead><tr><th>Same question, add "as of 2015"</th><th>Answer</th></tr></thead>
   <tbody>
    <tr><td class="miss">Plain RAG</td><td class="miss">Can't isolate the past - no time axis. It sees both the old and new fact and hedges or picks wrong.</td></tr>
-   <tr><td class="win">Cogniflow (as of 2015)</td><td id="asof-a" class="win"></td></tr>
+   <tr><td class="win">Agent Memry (as of 2015)</td><td id="asof-a" class="win"></td></tr>
   </tbody>
  </table>
  <div class="cta" style="margin-top:26px"><a class="btn s" href="index.html">Watch it in the live demo &rarr;</a></div>
@@ -96,7 +96,7 @@ TEMPLATE = """<!doctype html>
  <h2>We are the thing the recall-optimized clouds vacated</h2>
  <p class="lede">Not a worse hosted-memory service. The answer to a question their governed cloud structurally can't answer - for the regulated buyer who can't send data out. We tie on retrieval (we inherit Graphiti's); we win where they're blank.</p>
  <table>
-  <thead><tr><th>Capability</th><th>Cogniflow</th><th>Hosted recall-optimized memory</th></tr></thead>
+  <thead><tr><th>Capability</th><th>Agent Memry</th><th>Hosted recall-optimized memory</th></tr></thead>
   <tbody>
    <tr><td>Standard retrieval / recall</td><td class="tie">Tie - inherited, not a win</td><td class="win">Strong</td></tr>
    <tr><td>Temporal correctness / as-of replay</td><td class="win">Yes</td><td class="miss"> - no time axis</td></tr>
@@ -139,7 +139,7 @@ TEMPLATE = """<!doctype html>
 </section>
 
 <footer>
- Cogniflow - temporal, self-falsifying belief substrate for agentic RAG. Apache-2.0.
+ Agent Memry - temporal, self-falsifying belief substrate for agentic RAG. Apache-2.0.
  Benchmark captured <span id="cap"></span>. All figures from live runs; none fabricated.
 </footer>
 
@@ -149,8 +149,8 @@ const DEMO = __DEMO__, BENCH = __BENCH__;
 const H = DEMO.as_of_headline;
 document.getElementById("proof").innerHTML =
   `<div class="q">${H.query}</div>`+
-  `<div class="r">Cogniflow, as of 2015 &nbsp;&rarr;&nbsp; <b>${H.past_2015.answer.replace(/\\*\\*/g,"")}</b></div>`+
-  `<div class="r">Cogniflow, now &nbsp;&rarr;&nbsp; <b>${H.now.answer.replace(/\\*\\*/g,"")}</b></div>`+
+  `<div class="r">Agent Memry, as of 2015 &nbsp;&rarr;&nbsp; <b>${H.past_2015.answer.replace(/\\*\\*/g,"")}</b></div>`+
+  `<div class="r">Agent Memry, now &nbsp;&rarr;&nbsp; <b>${H.now.answer.replace(/\\*\\*/g,"")}</b></div>`+
   `<div class="r x">Plain RAG, as of 2015 &nbsp;&rarr;&nbsp; can't answer it at all - no temporal axis.</div>`;
 document.getElementById("asof-a").textContent = H.past_2015.answer.replace(/\\*\\*/g,"");
 
@@ -162,16 +162,16 @@ function panel(key, title, cap){
     `<div class="score"><span class="name">${name}</span><span class="val" style="color:${color}">${score}/${p.n}</span></div>`+
     `<div class="bar"><i style="width:${pct(score)}%;background:${color}"></i></div>`;
   return `<div class="panel"><h3>${title}</h3><p class="cap">${cap}</p>`+
-    row("Plain RAG", p.plain_score, p.plain_score>=p.cogniflow_score?"#56d39a":"#e07a86")+
+    row("Plain RAG", p.plain_score, p.plain_score>=p.memry_score?"#56d39a":"#e07a86")+
     `<div style="height:14px"></div>`+
-    row("Cogniflow", p.cogniflow_score, "#56d39a")+`</div>`;
+    row("Agent Memry", p.memry_score, "#56d39a")+`</div>`;
 }
 document.getElementById("panels").innerHTML =
   panel("standard","Standard questions","Stable facts that don't change. Both do well - an honest tie.")+
   panel("as_of","As-of questions","What was true at a past date. Plain RAG has no time axis.");
-const dp = P.as_of.plain_score, dc = P.as_of.cogniflow_score, n = P.as_of.n;
+const dp = P.as_of.plain_score, dc = P.as_of.memry_score, n = P.as_of.n;
 document.getElementById("bench-note").textContent =
-  `On as-of questions: plain RAG ${dp}/${n}, Cogniflow ${dc}/${n}. Reproduce: python demo/benchmark.py`;
+  `On as-of questions: plain RAG ${dp}/${n}, Agent Memry ${dc}/${n}. Reproduce: python demo/benchmark.py`;
 document.getElementById("cap").textContent = (BENCH.captured_at||"").slice(0,10);
 </script>
 </body></html>"""

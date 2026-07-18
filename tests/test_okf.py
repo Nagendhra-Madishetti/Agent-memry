@@ -11,8 +11,8 @@ import pytest
 
 pytest.importorskip("yaml")
 
-from cogniflow.core.types import FalsificationVerdict, RetrievalResult, WriteReceipt  # noqa: E402
-from cogniflow.okf import (  # noqa: E402
+from memry.core.types import FalsificationVerdict, RetrievalResult, WriteReceipt  # noqa: E402
+from memry.okf import (  # noqa: E402
     concept_to_episode,
     ingest_bundle,
     parse_bundle,

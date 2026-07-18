@@ -1,15 +1,15 @@
-"""Live head-to-head: plain RAG vs Cogniflow on the SAME corpus, SAME question, SAME LLM.
+"""Live head-to-head: plain RAG vs Agent Memry on the SAME corpus, SAME question, SAME LLM.
 
 Only the retrieval differs:
  - Plain RAG: a real vector index (NVIDIA embeddings) + top-k similarity. It has no
     recency/supersession model, so it returns the abundant, similar-but-stale answer.
- - Cogniflow: temporal substrate. It knows the old fact was superseded and returns the
+ - Agent Memry: temporal substrate. It knows the old fact was superseded and returns the
     current one - and, asked as-of an earlier date, correctly returns the old one.
 
 Edit demo/corpus.py and re-run; the contrast reproduces on your data.
 
 Prereqs: FalkorDB running (docker run -p 6379:6379 falkordb/falkordb), a .env with
-COGNIFLOW_LLM_*, and `pip install -e ".[all]"`.
+MEMRY_LLM_*, and `pip install -e ".[all]"`.
 Run: PYTHONPATH=src python demo/head_to_head.py
 """
 
@@ -26,12 +26,12 @@ from corpus import CORPUS, QUESTION  # noqa: E402
 from llama_index.core import Document, VectorStoreIndex  # noqa: E402
 from nvidia_embeddings import NvidiaEmbedding  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.bridges.llamaindex import make_llm  # noqa: E402
-from cogniflow.core.types import Episode, RetrievalQuery  # noqa: E402
+from memry.bridges.llamaindex import make_llm  # noqa: E402
+from memry.core.types import Episode, RetrievalQuery  # noqa: E402
 
 TOP_K = 3
 
@@ -51,7 +51,7 @@ def run_plain_rag(cfg: GraphitiFalkorDBConfig) -> tuple[str, list[str]]:
     return str(response).strip(), retrieved
 
 
-async def run_cogniflow(cfg: GraphitiFalkorDBConfig) -> dict:
+async def run_memry(cfg: GraphitiFalkorDBConfig) -> dict:
     from falkordb import FalkorDB
 
     try:
@@ -108,7 +108,7 @@ def main() -> None:
     print("=" * 78)
 
     rag_answer, rag_retrieved = run_plain_rag(cfg)
-    cf = asyncio.run(run_cogniflow(cfg))
+    cf = asyncio.run(run_memry(cfg))
 
     print(f"\n--- PLAIN RAG (vector similarity, top-{TOP_K}) ---")
     for r in rag_retrieved:
@@ -118,12 +118,12 @@ def main() -> None:
 
     now_ans, now_ctx = cf["now"]
     past_ans, past_ctx = cf["past"]
-    print("\n--- COGNIFLOW (temporal, as_of = now) ---")
+    print("\n--- MEMRY (temporal, as_of = now) ---")
     print(f" retrieved: {now_ctx}")
     print(f" ANSWER: {now_ans}")
     print(f" VERDICT: {_verdict(now_ans, 'Denver', 'Boston')}")
 
-    print("\n--- COGNIFLOW (temporal, as_of = 2016, proving it is not just always-new) ---")
+    print("\n--- MEMRY (temporal, as_of = 2016, proving it is not just always-new) ---")
     print(f" retrieved: {past_ctx}")
     print(f" ANSWER: {past_ans}")
     print(f" VERDICT: {_verdict(past_ans, 'Boston', 'Denver')}")

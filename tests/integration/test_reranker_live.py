@@ -20,12 +20,12 @@ try:
 except Exception:
     pass
 
-from cogniflow.core.types import Belief, RetrievalQuery  # noqa: E402
-from cogniflow.rerankers import RerankerRetrievalPolicy  # noqa: E402
+from memry.core.types import Belief, RetrievalQuery  # noqa: E402
+from memry.rerankers import RerankerRetrievalPolicy  # noqa: E402
 
 requires_key = pytest.mark.skipif(
-    not (os.getenv("COGNIFLOW_RERANKER_API_KEY") or os.getenv("COGNIFLOW_EMBEDDER_API_KEY")
-         or os.getenv("COGNIFLOW_LLM_API_KEY")),
+    not (os.getenv("MEMRY_RERANKER_API_KEY") or os.getenv("MEMRY_EMBEDDER_API_KEY")
+         or os.getenv("MEMRY_LLM_API_KEY")),
     reason="requires an NVIDIA API key for the reranker",
 )
 

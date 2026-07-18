@@ -27,13 +27,13 @@ except Exception:
 
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.documents import ingest_document  # noqa: E402
-from cogniflow.okf import ingest_bundle  # noqa: E402
-from cogniflow.serving import create_audit_app  # noqa: E402
+from memry.documents import ingest_document  # noqa: E402
+from memry.okf import ingest_bundle  # noqa: E402
+from memry.serving import create_audit_app  # noqa: E402
 
 _DEMO = pathlib.Path(__file__).resolve().parents[2] / "demo"
 BUNDLE = _DEMO / "okf_demo_bundle"
@@ -51,8 +51,8 @@ def _falkordb_up() -> bool:
 
 
 requires_stack = pytest.mark.skipif(
-    not (_falkordb_up() and os.getenv("COGNIFLOW_LLM_API_KEY") and BUNDLE.exists()),
-    reason="requires FalkorDB, COGNIFLOW_LLM_API_KEY, and the OKF demo bundle",
+    not (_falkordb_up() and os.getenv("MEMRY_LLM_API_KEY") and BUNDLE.exists()),
+    reason="requires FalkorDB, MEMRY_LLM_API_KEY, and the OKF demo bundle",
 )
 
 
@@ -102,8 +102,8 @@ def test_audit_api_event_axis_and_provenance_resolution() -> None:
 
 @pytest.mark.integration
 @pytest.mark.skipif(
-    not (_falkordb_up() and os.getenv("COGNIFLOW_LLM_API_KEY") and CORPUS.exists()),
-    reason="requires FalkorDB, COGNIFLOW_LLM_API_KEY, and the demo PDF corpus",
+    not (_falkordb_up() and os.getenv("MEMRY_LLM_API_KEY") and CORPUS.exists()),
+    reason="requires FalkorDB, MEMRY_LLM_API_KEY, and the demo PDF corpus",
 )
 def test_g1_provenance_uuid_resolves_to_document_name() -> None:
     # The document (add_episode) path stores a real episode UUID with a backing Episodic

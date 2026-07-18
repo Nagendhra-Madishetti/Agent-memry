@@ -10,21 +10,21 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.audit import (
+from memry.core.audit import (
     bitemporal_query as _bitemporal,
 )
-from cogniflow.core.audit import (
+from memry.core.audit import (
     event_time_query as _event,
 )
-from cogniflow.core.audit import (
+from memry.core.audit import (
     system_time_replay as _replay,
 )
-from cogniflow.core.types import Belief, ProvenanceTrace
+from memry.core.types import Belief, ProvenanceTrace
 
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from cogniflow.serving import create_audit_app  # noqa: E402
+from memry.serving import create_audit_app  # noqa: E402
 
 
 def _dt(y: int, m: int = 1) -> datetime:

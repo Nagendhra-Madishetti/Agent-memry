@@ -11,9 +11,9 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from cogniflow.context import ServedFact
-from cogniflow.eval_corpus import FAITHFULNESS_CASES, verify_cases
-from cogniflow.faithfulness import LexicalChecker
+from memry.context import ServedFact
+from memry.eval_corpus import FAITHFULNESS_CASES, verify_cases
+from memry.faithfulness import LexicalChecker
 
 
 def _fact(i: int, statement: str) -> ServedFact:

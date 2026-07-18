@@ -1,10 +1,10 @@
-# Cogniflow - one-command local/trusted-environment standup
+# Agent Memry - one-command local/trusted-environment standup
 #   docker compose up --build      # FalkorDB + API + web, secure-by-default (auth ON)
 #   bash scripts/demo.sh           # the 60-second Acme bitemporal proof (key-free)
 # Local/trusted-environment standup. For multi-replica production deployment, add the overlay:
 #   docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d --build
 # (shared session state + durable shared journal; verified by scripts/two_replica_proof.sh)
-name: cogniflow
+name: memry
 
 services:
   falkordb:
@@ -25,26 +25,26 @@ services:
       falkordb:
         condition: service_healthy
     environment:
-      COGNIFLOW_FALKORDB_HOST: falkordb
-      COGNIFLOW_FALKORDB_PORT: "6379"
+      MEMRY_FALKORDB_HOST: falkordb
+      MEMRY_FALKORDB_PORT: "6379"
       # secure-by-default: auth is ON. Override the demo token for anything shared.
-      COGNIFLOW_API_TOKENS: ${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token}
-      COGNIFLOW_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      MEMRY_API_TOKENS: ${MEMRY_DEMO_TOKEN:-memry-demo-token}
+      MEMRY_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
       # Optional providers. The seeded Acme hero is KEY-FREE; only /answer + real ingestion
       # need these (unset -> hash embedder, which warns; /answer fails loud without an LLM key).
-      COGNIFLOW_LLM_API_KEY: ${COGNIFLOW_LLM_API_KEY:-}
-      COGNIFLOW_LLM_BASE_URL: ${COGNIFLOW_LLM_BASE_URL:-}
-      COGNIFLOW_LLM_MODEL: ${COGNIFLOW_LLM_MODEL:-}
-      COGNIFLOW_EMBEDDER_API_KEY: ${COGNIFLOW_EMBEDDER_API_KEY:-}
+      MEMRY_LLM_API_KEY: ${MEMRY_LLM_API_KEY:-}
+      MEMRY_LLM_BASE_URL: ${MEMRY_LLM_BASE_URL:-}
+      MEMRY_LLM_MODEL: ${MEMRY_LLM_MODEL:-}
+      MEMRY_EMBEDDER_API_KEY: ${MEMRY_EMBEDDER_API_KEY:-}
     ports:
       - "8000:8000"
 
   web:
     build:
-      context: ./cogniflow-web
+      context: ./memry-web
       args:
         NEXT_PUBLIC_API_URL: "http://localhost:8000"
-        NEXT_PUBLIC_API_TOKEN: ${COGNIFLOW_DEMO_TOKEN:-cogniflow-demo-token}
+        NEXT_PUBLIC_API_TOKEN: ${MEMRY_DEMO_TOKEN:-memry-demo-token}
     depends_on:
       - api
     ports:

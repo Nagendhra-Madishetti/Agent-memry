@@ -19,12 +19,12 @@ pytest.importorskip("llama_index.core")
 
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode  # noqa: E402
 
-from cogniflow.bridges.llamaindex.postprocessor import (  # noqa: E402
+from memry.bridges.llamaindex.postprocessor import (  # noqa: E402
     TemporalValidityPostprocessor,
 )
-from cogniflow.bridges.llamaindex.retriever import TemporalGraphRetriever  # noqa: E402
-from cogniflow.core.policies import DefaultValidityPolicy, filter_valid  # noqa: E402
-from cogniflow.core.types import (  # noqa: E402
+from memry.bridges.llamaindex.retriever import TemporalGraphRetriever  # noqa: E402
+from memry.core.policies import DefaultValidityPolicy, filter_valid  # noqa: E402
+from memry.core.types import (  # noqa: E402
     Belief,
     RetrievalQuery,
     RetrievalResult,

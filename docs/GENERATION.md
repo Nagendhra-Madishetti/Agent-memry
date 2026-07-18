@@ -1,12 +1,12 @@
 # The generation layer - closing the RAG loop
 
-Cogniflow serves context (A.3) so any model can answer. The generation layer is the
+Agent Memry serves context (A.3) so any model can answer. The generation layer is the
 **optional** convenience that answers *itself*: documents in -> temporally-correct,
 provenance-cited answer out. It sits **on** the context API - it does not replace it. A caller
 picks the surface:
 
 - **context out** (`serve_context` / `/context` / `get_context`) - bring your own model, or
-- **answer out** (`generate_answer` / `/answer` / `get_answer`) - Cogniflow generates.
+- **answer out** (`generate_answer` / `/answer` / `get_answer`) - Agent Memry generates.
 
 Thin and optional; the model-agnostic core survives. No core change; read-only.
 
@@ -46,7 +46,7 @@ sentence on LLM-extracted prose is not mistaken for one on deterministic structu
 
 The answer-producing LLM is a plug, like the embedder:
 `create_generator("nvidia" | "minimax" | "openai", api_key=..., model=..., base_url=...)`, or
-`create_generator_from_env()` (reads `COGNIFLOW_GENERATOR*`, falling back to `COGNIFLOW_LLM_*`).
+`create_generator_from_env()` (reads `MEMRY_GENERATOR*`, falling back to `MEMRY_LLM_*`).
 One OpenAI-compatible client covers NVIDIA/MiniMax/OpenAI and any compatible endpoint
 (including a self-hosted/local model for the VPC wedge). **Fail-loud**: a missing key or an
 unknown name raises at construction - never a silent no-op. Dependency-light (stdlib HTTP), so
@@ -78,8 +78,8 @@ live.
 
 ## Both surfaces, self-hostable
 ```python
-from cogniflow.serving import create_app, build_mcp_server
-from cogniflow.generators import create_generator_from_env
+from memry.serving import create_app, build_mcp_server
+from memry.generators import create_generator_from_env
 
 gen = create_generator_from_env()
 app = create_app(substrate, gen) # /context (always) + /answer (with a generator)

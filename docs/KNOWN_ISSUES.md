@@ -13,7 +13,7 @@ window would never be seen, and a `top_k`-sized in-process filter could not reco
 
 **Mitigation (in place):** `GraphitiFalkorDBBackend.read()` over-fetches a wider candidate
 set (`max(top_k * 10, 50)`), applies the single shared `ValidityPolicy` in-process
-(`cogniflow.core.policies.filter_valid`), then truncates to `top_k`. Point-in-time
+(`memry.core.policies.filter_valid`), then truncates to `top_k`. Point-in-time
 correctness therefore does not depend on the DB-side filter.
 
 **Follow-up (deferred):** push the temporal predicate into the FalkorDB Cypher query (or

@@ -14,20 +14,20 @@ import pytest
 # The integration lane and local dev (with [all]) run these for real.
 pytest.importorskip("graphiti_core")
 
-from cogniflow.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
-from cogniflow.backends.embedders import (  # noqa: E402
+from memry.backends._local_embedder import LocalDeterministicEmbedder  # noqa: E402
+from memry.backends.embedders import (  # noqa: E402
     EmbedderError,
     available_embedders,
     create_embedder,
     is_semantic,
     warn_if_non_semantic,
 )
-from cogniflow.context import (  # noqa: E402
+from memry.context import (  # noqa: E402
     NON_SEMANTIC_RETRIEVAL_NOTE,
     OVERFETCH_SATURATED_NOTE,
     serve_context,
 )
-from cogniflow.core.types import RetrievalResult, ScoredBelief  # noqa: E402
+from memry.core.types import RetrievalResult, ScoredBelief  # noqa: E402
 
 _HAS_FLAG = importlib.util.find_spec("FlagEmbedding") is not None
 
@@ -65,7 +65,7 @@ def test_bge_m3_local_fails_loud_without_the_extra() -> None:
 
 def test_warn_fires_on_hash_outside_tests(monkeypatch: pytest.MonkeyPatch, caplog) -> None:
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False) # simulate a real (non-test) run
-    with caplog.at_level(logging.WARNING, logger="cogniflow"):
+    with caplog.at_level(logging.WARNING, logger="memry"):
         warn_if_non_semantic(create_embedder("hash"))
     assert caplog.records, "hash must warn loudly outside a test - never silent (T1)"
     assert "non-semantic" in caplog.records[0].message.lower()
@@ -73,7 +73,7 @@ def test_warn_fires_on_hash_outside_tests(monkeypatch: pytest.MonkeyPatch, caplo
 
 def test_warn_is_silent_inside_tests(monkeypatch: pytest.MonkeyPatch, caplog) -> None:
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "sentinel") # the pytest-run marker
-    with caplog.at_level(logging.WARNING, logger="cogniflow"):
+    with caplog.at_level(logging.WARNING, logger="memry"):
         warn_if_non_semantic(create_embedder("hash"))
     assert not caplog.records # deterministic + clean in the suite (correctness tests run on hash)
 

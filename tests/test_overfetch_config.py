@@ -11,12 +11,12 @@ import pytest
 pytest.importorskip("graphiti_core")
 pytest.importorskip("falkordb")
 
-from cogniflow.backends.graphiti_falkordb import GraphitiFalkorDBConfig  # noqa: E402
+from memry.backends.graphiti_falkordb import GraphitiFalkorDBConfig  # noqa: E402
 
 
 def test_overfetch_depth_is_tunable_via_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("COGNIFLOW_OVERFETCH_FACTOR", "25")
-    monkeypatch.setenv("COGNIFLOW_MIN_OVERFETCH", "200")
+    monkeypatch.setenv("MEMRY_OVERFETCH_FACTOR", "25")
+    monkeypatch.setenv("MEMRY_MIN_OVERFETCH", "200")
     cfg = GraphitiFalkorDBConfig.from_env(group_id="cfg_test")
     assert cfg.overfetch_factor == 25
     assert cfg.min_overfetch == 200

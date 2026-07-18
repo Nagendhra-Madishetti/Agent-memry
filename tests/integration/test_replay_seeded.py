@@ -22,13 +22,13 @@ import pytest
 pytest.importorskip("graphiti_core")
 pytest.importorskip("falkordb")
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
 
-HOST = os.getenv("COGNIFLOW_FALKORDB_HOST", "localhost")
-PORT = int(os.getenv("COGNIFLOW_FALKORDB_PORT", "6379"))
+HOST = os.getenv("MEMRY_FALKORDB_HOST", "localhost")
+PORT = int(os.getenv("MEMRY_FALKORDB_PORT", "6379"))
 
 _C2019 = "2019-01-01T00:00:00+00:00" # learned + valid: the Boston filing
 _C2022 = "2022-01-01T00:00:00+00:00" # learned + valid: the Denver filing; Boston ends here

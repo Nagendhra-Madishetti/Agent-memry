@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cogniflow-rag"
+name = "memry"
 version = "0.1.0"
 description = "Bi-temporal RAG platform: cited, temporally-correct answers plus system-time replay. Self-hostable memory and audit layer for AI agents."
 readme = "README.md"
@@ -57,12 +57,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Open-Cognition-Labs/cogniflow"
-Repository = "https://github.com/Open-Cognition-Labs/cogniflow"
-Issues = "https://github.com/Open-Cognition-Labs/cogniflow/issues"
+Homepage = "https://github.com/Open-Cognition-Labs/memry"
+Repository = "https://github.com/Open-Cognition-Labs/memry"
+Issues = "https://github.com/Open-Cognition-Labs/memry/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cogniflow"]
+packages = ["src/memry"]
 
 [tool.ruff]
 line-length = 100

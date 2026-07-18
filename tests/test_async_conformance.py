@@ -9,13 +9,13 @@ import asyncio
 
 import pytest
 
-from cogniflow.backends.noop import AsyncNoOpBackend, NoOpBackend
-from cogniflow.conformance.suite import (
+from memry.backends.noop import AsyncNoOpBackend, NoOpBackend
+from memry.conformance.suite import (
     assert_conforms_async,
     run_conformance,
     run_conformance_async,
 )
-from cogniflow.core.contracts import AsyncSubstrate, Substrate
+from memry.core.contracts import AsyncSubstrate, Substrate
 
 
 def test_async_noop_passes_async_conformance() -> None:

@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from cogniflow.core.types import Belief
-from cogniflow.registry import (
+from memry.core.types import Belief
+from memry.registry import (
     FAMILIES,
     PolicyNotFoundError,
     available_policies,

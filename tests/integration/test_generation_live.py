@@ -22,13 +22,13 @@ try:
 except Exception:
     pass
 
-from cogniflow.backends.graphiti_falkordb import (  # noqa: E402
+from memry.backends.graphiti_falkordb import (  # noqa: E402
     GraphitiFalkorDBBackend,
     GraphitiFalkorDBConfig,
 )
-from cogniflow.core.types import Episode  # noqa: E402
-from cogniflow.generation import generate_answer  # noqa: E402
-from cogniflow.generators import create_generator_from_env  # noqa: E402
+from memry.core.types import Episode  # noqa: E402
+from memry.generation import generate_answer  # noqa: E402
+from memry.generators import create_generator_from_env  # noqa: E402
 
 UTC = timezone.utc
 
@@ -48,8 +48,8 @@ def _falkordb_up() -> bool:
 
 
 requires_stack = pytest.mark.skipif(
-    not (_falkordb_up() and os.getenv("COGNIFLOW_LLM_API_KEY")),
-    reason="requires FalkorDB and COGNIFLOW_LLM_API_KEY",
+    not (_falkordb_up() and os.getenv("MEMRY_LLM_API_KEY")),
+    reason="requires FalkorDB and MEMRY_LLM_API_KEY",
 )
 
 

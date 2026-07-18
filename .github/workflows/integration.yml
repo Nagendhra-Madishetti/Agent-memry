@@ -5,7 +5,7 @@ name: integration
 # make this the most expensive job, so it runs WEEKLY and on demand (workflow_dispatch), NOT on
 # every push, to keep private-repo Actions minutes in budget. The core un-knowing invariant is
 # still gated per-PR by the cheaper `replay-invariant` job in ci.yml (FalkorDB only, no key).
-# LLM-dependent tests run only when the COGNIFLOW_LLM_* secrets are set; otherwise they skip.
+# LLM-dependent tests run only when the MEMRY_LLM_* secrets are set; otherwise they skip.
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
       neo4j:
         image: neo4j:5
         env:
-          NEO4J_AUTH: neo4j/cogniflowtest
+          NEO4J_AUTH: neo4j/memrytest
         ports:
           - 7687:7687
           - 7474:7474
@@ -41,10 +41,10 @@ jobs:
           pip install -e ".[all,dev]"
       - name: Integration suite (real backends; LLM tests gated on secret)
         env:
-          COGNIFLOW_LLM_API_KEY: ${{ secrets.COGNIFLOW_LLM_API_KEY }}
-          COGNIFLOW_LLM_BASE_URL: ${{ secrets.COGNIFLOW_LLM_BASE_URL }}
-          COGNIFLOW_LLM_MODEL: ${{ secrets.COGNIFLOW_LLM_MODEL }}
-          COGNIFLOW_NEO4J_URI: bolt://localhost:7687
-          COGNIFLOW_NEO4J_USER: neo4j
-          COGNIFLOW_NEO4J_PASSWORD: cogniflowtest
+          MEMRY_LLM_API_KEY: ${{ secrets.MEMRY_LLM_API_KEY }}
+          MEMRY_LLM_BASE_URL: ${{ secrets.MEMRY_LLM_BASE_URL }}
+          MEMRY_LLM_MODEL: ${{ secrets.MEMRY_LLM_MODEL }}
+          MEMRY_NEO4J_URI: bolt://localhost:7687
+          MEMRY_NEO4J_USER: neo4j
+          MEMRY_NEO4J_PASSWORD: memrytest
         run: pytest tests/integration -q

@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import dataclasses
 
-from cogniflow.bridges import contracts as bridges
-from cogniflow.core import policies, types
-from cogniflow.core.contracts import AsyncSubstrate, Substrate
+from memry.bridges import contracts as bridges
+from memry.core import policies, types
+from memry.core.contracts import AsyncSubstrate, Substrate
 
 
 def _fields(dc: type) -> set[str]:

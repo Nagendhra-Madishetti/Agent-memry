@@ -10,9 +10,9 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from cogniflow.core.audit import reconstruct_as_of_system
-from cogniflow.core.cache import CachingAuditLedger
-from cogniflow.core.types import Belief
+from memry.core.audit import reconstruct_as_of_system
+from memry.core.cache import CachingAuditLedger
+from memry.core.types import Belief
 
 
 def _w(year: int) -> datetime:

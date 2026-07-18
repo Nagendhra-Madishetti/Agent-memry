@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from cogniflow.core.policies import DefaultValidityPolicy, filter_valid
-from cogniflow.core.types import Belief
+from memry.core.policies import DefaultValidityPolicy, filter_valid
+from memry.core.types import Belief
 
 
 def _dt(year: int) -> datetime:
@@ -83,7 +83,7 @@ def test_t5_regression_validity_agrees_after_generalization() -> None:
     # T5: validity is now "one registered policy among the family". The default
     # ("strict") built via the registry must still match the in-process
     # DefaultValidityPolicy used by the substrate read on the canonical case.
-    from cogniflow.registry import create_policy
+    from memry.registry import create_policy
 
     registered = create_policy("validity", "strict")
     direct = DefaultValidityPolicy()

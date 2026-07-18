@@ -1,6 +1,6 @@
 # RFC: <title>
 
-Core contracts in `cogniflow.core` are SemVer'd. Adding a plugin needs no RFC. Changing
+Core contracts in `memry.core` are SemVer'd. Adding a plugin needs no RFC. Changing
 or breaking a core contract (a type field, a Protocol signature, a conformance check)
 does - it can break every downstream plugin. Copy this template into a PR description.
 

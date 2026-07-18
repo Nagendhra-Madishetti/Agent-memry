@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from cogniflow.core.policies import DefaultValidityPolicy, rank_valid
-from cogniflow.core.types import Belief, RetrievalQuery, ScoredBelief
+from memry.core.policies import DefaultValidityPolicy, rank_valid
+from memry.core.types import Belief, RetrievalQuery, ScoredBelief
 
 
 def _w(year: int) -> datetime:

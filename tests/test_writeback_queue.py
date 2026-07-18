@@ -13,15 +13,15 @@ from __future__ import annotations
 
 import asyncio
 
-from cogniflow import observability
-from cogniflow.core.types import (
+from memry import observability
+from memry.core.types import (
     Episode,
     FalsificationVerdict,
     RetrievalQuery,
     RetrievalResult,
     WriteReceipt,
 )
-from cogniflow.writeback import Observation, WriteBackQueue
+from memry.writeback import Observation, WriteBackQueue
 
 
 class _FakeBackend:
@@ -186,10 +186,10 @@ def test_observability_emits_on_every_transition() -> None:
             await queue.aclose()
             observability.clear_sinks()
 
-        assert "cogniflow.writeback.enqueue" in events
-        assert "cogniflow.writeback.start" in events
-        assert "cogniflow.writeback.success" in events
-        assert "cogniflow.writeback.drain" in events
+        assert "memry.writeback.enqueue" in events
+        assert "memry.writeback.start" in events
+        assert "memry.writeback.success" in events
+        assert "memry.writeback.drain" in events
 
     asyncio.run(run())
 
@@ -214,7 +214,7 @@ def test_observability_emits_reject_on_saturation() -> None:
             await queue.aclose()
             observability.clear_sinks()
 
-        assert "cogniflow.writeback.reject" in events
+        assert "memry.writeback.reject" in events
 
     asyncio.run(run())
 
@@ -243,7 +243,7 @@ def test_dead_letters_are_observable() -> None:
         assert status.degraded is True
         assert status.failed_count == 1
         assert status.last_ingested_at is None # never succeeded, and it says so honestly
-        assert "cogniflow.writeback.dead_letter" in events # distinct event, not "fail"
+        assert "memry.writeback.dead_letter" in events # distinct event, not "fail"
 
 
 def test_drain_waits_for_successful_retry() -> None:
