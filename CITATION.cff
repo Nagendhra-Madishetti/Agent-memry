@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Madishetti
     given-names: Nagendhra
-repository-code: "https://github.com/Open-Cognition-Labs/memry"
+repository-code: "https://github.com/Nagendhra-Madishetti/memry"
 license: Apache-2.0
 abstract: >-
   Agent Memry stores every fact on two independent time axes (event time and system time),

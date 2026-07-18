@@ -1,7 +1,7 @@
 export const site = {
   name: "Agent Memry",
   tagline: "The auditable, self-hostable belief ledger for agents.",
-  repo: "https://github.com/Open-Cognition-Labs/memry",
+  repo: "https://github.com/Nagendhra-Madishetti/memry",
   nav: [
     { href: "/playground", label: "Playground" },
     { href: "/plugins", label: "Plugins" },

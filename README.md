@@ -10,7 +10,7 @@ Any document in, a cited and temporally-correct answer out, plus the capability 
 the field lacks: replay what the system believed at any past moment, without leaking later
 corrections into the past.
 
-[![ci](https://github.com/Open-Cognition-Labs/memry/actions/workflows/ci.yml/badge.svg)](https://github.com/Open-Cognition-Labs/memry/actions/workflows/ci.yml)
+[![ci](https://github.com/Nagendhra-Madishetti/memry/actions/workflows/ci.yml/badge.svg)](https://github.com/Nagendhra-Madishetti/memry/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
@@ -68,7 +68,7 @@ the un-knowing invariant, enforced in CI against a live graph store.
 Prereqs: Docker. No API keys required for the demo.
 
 ```bash
-git clone https://github.com/Open-Cognition-Labs/memry && cd memry
+git clone https://github.com/Nagendhra-Madishetti/memry && cd memry
 docker compose up -d --build
 bash scripts/demo.sh
 ```

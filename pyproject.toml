@@ -57,9 +57,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Open-Cognition-Labs/memry"
-Repository = "https://github.com/Open-Cognition-Labs/memry"
-Issues = "https://github.com/Open-Cognition-Labs/memry/issues"
+Homepage = "https://github.com/Nagendhra-Madishetti/memry"
+Repository = "https://github.com/Nagendhra-Madishetti/memry"
+Issues = "https://github.com/Nagendhra-Madishetti/memry/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/memry"]
