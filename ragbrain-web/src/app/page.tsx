@@ -132,7 +132,7 @@ export default function Home() {
             <div className="ring-glow rounded-lg border border-brand/30 bg-brand/[0.05] p-4">
               <div className="text-xs text-muted-foreground">As-of questions</div>
               <div className="mt-1 text-sm">
-                <span className="font-semibold text-brand">RAGBrain {systems.find((s) => s.name.startsWith("RAGBrain"))?.as_of.score}/{bn}</span>
+                <span className="font-semibold text-brand">RAGBrain {systems.find((s) => displayName(s.name).startsWith("RAGBrain"))?.as_of.score}/{bn}</span>
                 <span className="text-muted-foreground"> · every other system 0/{bn}</span>
               </div>
             </div>

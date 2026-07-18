@@ -71,9 +71,9 @@ export default function BenchmarkPage() {
               </thead>
               <tbody>
                 {systems.map((s) => {
-                  const cf = s.name.startsWith("RAGBrain");
+                  const cf = displayName(s.name).startsWith("RAGBrain");
                   return (
-                    <tr key={s.name} className="border-t border-border">
+                    <tr key={displayName(s.name)} className="border-t border-border">
                       <td className={`px-5 py-3 ${cf ? "font-semibold text-brand" : "text-foreground"}`}>
                         {displayName(s.name)}
                         <span className="ml-2 text-xs font-normal text-muted-foreground">{s.kind}</span>
@@ -101,9 +101,9 @@ export default function BenchmarkPage() {
         </Reveal>
         <div className="space-y-3">
           {systems.map((s) => (
-            <details key={s.name} className="group rounded-xl border border-border bg-card elev">
+            <details key={displayName(s.name)} className="group rounded-xl border border-border bg-card elev">
               <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 text-sm">
-                <span className={s.name.startsWith("RAGBrain") ? "font-semibold text-brand" : "font-medium"}>
+                <span className={displayName(s.name).startsWith("RAGBrain") ? "font-semibold text-brand" : "font-medium"}>
                   {displayName(s.name)}
                 </span>
                 <span className="text-xs text-muted-foreground">{s.kind}</span>

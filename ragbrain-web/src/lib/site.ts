@@ -15,6 +15,9 @@ export const site = {
 // substrate ablation to a category (we don't frame ourselves as built on it).
 export function displayName(name: string): string {
   if (name.startsWith("Graphiti")) return "Temporal graph (no as-of)";
+  // The benchmark JSONs are frozen measured artifacts captured under the
+  // project's former name; map to the current brand at display time only.
+  if (name.startsWith("Cogniflow")) return name.replace("Cogniflow", "RAGBrain");
   return name;
 }
 
