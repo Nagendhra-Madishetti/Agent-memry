@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/media/logo.png" alt="RAGBrain" width="300">
+<img src="https://raw.githubusercontent.com/Nagendhra-Madishetti/ragbrain/main/docs/media/logo.png" alt="RAGBrain" width="300">
 
 
 # RAGBrain
