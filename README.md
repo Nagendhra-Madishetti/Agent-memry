@@ -5,7 +5,7 @@
 
 # RAGBrain
 
-**The bi-temporal RAG platform. Prove what your AI knew, and when.**
+**The Open-Source Bi-Temporal RAG Framework for AI Agents. Prove what your AI knew, and when.**
 
 Any document in, a cited and temporally-correct answer out, plus the capability the rest of
 the field lacks: replay what the system believed at any past moment, without leaking later
