@@ -97,7 +97,7 @@ pip install "ragbrain[all,serve]"   # backends + the platform API
 
 ## Architecture
 
-<img width="1060" height="923" alt="RAGBrain architecture" src="docs/media/architecture.png" />
+<img width="1060" alt="RAGBrain architecture" src="docs/media/architecture.png" />
 The core is dependency-free: `ragbrain.core` imports only the standard library. Storage,
 models, and retrieval are adapters behind stable interfaces, selected by configuration.
 
