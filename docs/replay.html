@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGBrain · System-time replay</title>
+</head>
+<body>
+
+<style>
+  :root {
+    --surface: #fbfaf8;
+    --card: #ffffff;
+    --ink: #1c1917;
+    --muted: #78716c;
+    --line: #e7e0da;
+    --brand: #e4551c;
+    --brand-soft: #fdeee6;
+    --live: #0f766e;
+    --live-soft: #e6f4f1;
+    --superseded: #b45309;
+    --superseded-soft: #fbf0e0;
+    --unknown: #a8a29e;
+    --unknown-soft: #f2efec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--surface); color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 52px 24px 40px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.8px; color: var(--brand);
+    text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-size: clamp(26px, 4.5vw, 38px); font-weight: 700; letter-spacing: -0.5px;
+    line-height: 1.15; text-wrap: balance; margin-bottom: 12px; }
+  .lede { font-size: 15.5px; color: var(--muted); line-height: 1.55; max-width: 62ch;
+    margin-bottom: 30px; }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px 26px; box-shadow: 0 1px 3px rgba(28,25,23,.05); }
+
+  .knew-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+    margin-bottom: 14px; }
+  .knew-label { font-size: 13.5px; color: var(--muted); }
+  .knew-date { font-size: 26px; font-weight: 700; letter-spacing: -0.4px;
+    font-variant-numeric: tabular-nums; }
+
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+    border-radius: 99px; outline: none; cursor: pointer;
+    background: linear-gradient(to right, var(--brand) 0%, var(--brand) 0%, #e9e2dc 0%); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--brand);
+    border: 3px solid #fff; box-shadow: 0 1px 5px rgba(228,85,28,.45); cursor: grab; }
+  input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
+    background: var(--brand); border: 3px solid #fff; box-shadow: 0 1px 5px rgba(228,85,28,.45); }
+  input[type="range"]:focus-visible { box-shadow: 0 0 0 3px var(--brand-soft); }
+
+  .scale { position: relative; display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted); margin: 9px 2px 0; height: 18px; }
+  .marker { position: absolute; left: 59.7%; transform: translateX(-50%);
+    color: var(--brand); font-weight: 700; font-size: 11.5px; letter-spacing: 0.6px;
+    white-space: nowrap; }
+
+  .controls { display: flex; justify-content: flex-end; margin-top: 6px; }
+  button.play { font: inherit; font-size: 13px; font-weight: 600; color: var(--brand);
+    background: var(--brand-soft); border: 1px solid #f6cdb8; border-radius: 99px;
+    padding: 5px 14px; cursor: pointer; }
+  button.play:hover { background: #fce3d5; }
+  button.play:disabled { opacity: 0.5; cursor: default; }
+  button.play:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .belief { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; background: #fdfcfb; min-height: 118px; }
+  .belief .statement { font-size: 19px; line-height: 1.35; }
+  .belief .statement .city { color: var(--brand); font-weight: 700; }
+  .belief .expl { font-size: 13.5px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+  .belief .meta { font-family: Consolas, ui-monospace, monospace; font-size: 12.5px;
+    color: var(--muted); margin-top: 9px; }
+  .belief.empty .statement { color: var(--muted); font-size: 16px; }
+
+  h2 { font-size: 15px; font-weight: 700; margin: 30px 0 12px; }
+  .fact { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; transition: opacity 0.25s; }
+  .fact + .fact { margin-top: 10px; }
+  .fact .s { font-size: 15px; font-weight: 600; }
+  .fact .s.struck { text-decoration: line-through; color: var(--muted); font-weight: 500; }
+  .fact .m { font-family: Consolas, ui-monospace, monospace; font-size: 12px;
+    color: var(--muted); margin-top: 5px; }
+  .fact.dim { opacity: 0.45; }
+  .chip { flex: none; font-size: 11.5px; font-weight: 700; letter-spacing: 0.4px;
+    border-radius: 99px; padding: 3px 11px; }
+  .chip.live { color: var(--live); background: var(--live-soft); }
+  .chip.superseded { color: var(--superseded); background: var(--superseded-soft); }
+  .chip.unknown { color: var(--unknown); background: var(--unknown-soft); }
+
+  .note { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 22px;
+    max-width: 66ch; }
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    font-size: 13px; color: var(--muted); }
+  footer code { font-family: Consolas, ui-monospace, monospace; color: var(--ink); }
+  footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
+  @media (prefers-reduced-motion: reduce) { .fact { transition: none; } }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">RAGBrain · interactive demo</div>
+  <h1>What did the system believe, and when?</h1>
+  <p class="lede">A seeded scenario: Acme Corp moved its headquarters. The <b>2019 filing said Boston</b>;
+    the <b>2022 filing said Denver</b>. Drag the system-time slider to replay what the ledger knew at any
+    past moment. Later corrections never leak into the past: that is the un-knowing invariant.</p>
+
+  <div class="card">
+    <div class="knew-row">
+      <span class="knew-label">The system knew, as of</span>
+      <span class="knew-date" id="date">Jun 2018</span>
+    </div>
+    <input type="range" id="s" min="0" max="72" step="1" value="0" aria-label="system time" />
+    <div class="scale">
+      <span>2018</span>
+      <span class="marker">&#8593; 2022 correction</span>
+      <span>2024</span>
+    </div>
+    <div class="controls">
+      <button class="play" id="play">&#9654;&#65038; Replay</button>
+    </div>
+    <div class="belief" id="belief"></div>
+  </div>
+
+  <h2>The fact's timeline, from this vantage point</h2>
+  <div class="fact" id="f-boston">
+    <div>
+      <div class="s" id="f-boston-s">Acme Corp is headquartered in Boston</div>
+      <div class="m" id="f-boston-m"></div>
+    </div>
+    <span class="chip" id="f-boston-c"></span>
+  </div>
+  <div class="fact" id="f-denver">
+    <div>
+      <div class="s">Acme Corp is headquartered in Denver</div>
+      <div class="m" id="f-denver-m"></div>
+    </div>
+    <span class="chip" id="f-denver-c"></span>
+  </div>
+
+  <p class="note">Plain RAG answers &ldquo;what is true now.&rdquo; A bi-temporal ledger also answers
+    &ldquo;what did we believe then&rdquo;, because every fact carries two independent time axes:
+    when it was true in the world, and when the system learned it.</p>
+
+  <footer>
+    <span><code>pip install ragbrain</code> &middot; Apache 2.0 &middot; self-hostable</span>
+    <a href="https://github.com/Nagendhra-Madishetti/ragbrain">github.com/Nagendhra-Madishetti/ragbrain</a>
+  </footer>
+</div>
+
+<script>
+  var slider = document.getElementById("s");
+  var dateEl = document.getElementById("date");
+  var belief = document.getElementById("belief");
+  var LEARN_BOSTON = 7;   // Jan 2019, months after Jun 2018
+  var LEARN_DENVER = 43;  // Jan 2022
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function label(v) {
+    var d = new Date(2018, 5 + v);
+    return MONTHS[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  function setChip(id, state, text) {
+    var el = document.getElementById(id);
+    el.className = "chip " + state;
+    el.textContent = text;
+  }
+
+  function render() {
+    var v = +slider.value;
+    dateEl.textContent = label(v);
+    var pct = (v / 72) * 100;
+    slider.style.background = "linear-gradient(to right, var(--brand) 0%, var(--brand) "
+      + pct + "%, #e9e2dc " + pct + "%)";
+
+    var bostonS = document.getElementById("f-boston-s");
+    var boston = document.getElementById("f-boston");
+    var denver = document.getElementById("f-denver");
+
+    if (v < LEARN_BOSTON) {
+      belief.className = "belief empty";
+      belief.innerHTML = '<div class="statement">As of ' + label(v)
+        + ', the system had not yet learned anything about Acme Corp.</div>';
+      boston.className = "fact dim"; denver.className = "fact dim";
+      bostonS.className = "s";
+      setChip("f-boston-c", "unknown", "not yet known");
+      setChip("f-denver-c", "unknown", "not yet known");
+      document.getElementById("f-boston-m").textContent = "learned Jan 2019";
+      document.getElementById("f-denver-m").textContent = "learned Jan 2022";
+    } else if (v < LEARN_DENVER) {
+      belief.className = "belief";
+      belief.innerHTML =
+        '<div class="statement">Acme Corp is headquartered in <span class="city">Boston</span></div>'
+        + '<div class="expl">It has not yet learned about the 2022 move. The later correction is'
+        + ' un-known at this system time.</div>'
+        + '<div class="meta">valid 2019-01-01 &#8594; present &middot; source: Acme Corp 2019 annual report</div>';
+      boston.className = "fact"; denver.className = "fact dim";
+      bostonS.className = "s";
+      setChip("f-boston-c", "live", "live");
+      setChip("f-denver-c", "unknown", "not yet known");
+      document.getElementById("f-boston-m").textContent =
+        "valid 2019-01-01 → present (from this vantage) · learned Jan 2019";
+      document.getElementById("f-denver-m").textContent = "learned Jan 2022";
+    } else {
+      belief.className = "belief";
+      belief.innerHTML =
+        '<div class="statement">Acme Corp is headquartered in <span class="city">Denver</span></div>'
+        + '<div class="expl">After ingesting the 2022 press release, the Boston fact was expired'
+        + ' and stamped with what superseded it.</div>'
+        + '<div class="meta">valid 2022-01-01 &#8594; present &middot; source: Acme Corp 2022 press release</div>';
+      boston.className = "fact"; denver.className = "fact";
+      bostonS.className = "s struck";
+      setChip("f-boston-c", "superseded", "superseded");
+      setChip("f-denver-c", "live", "live");
+      document.getElementById("f-boston-m").textContent =
+        "valid 2019-01-01 → 2022-01-01 · superseded by: Acme Corp 2022 press release";
+      document.getElementById("f-denver-m").textContent =
+        "valid 2022-01-01 → present · learned Jan 2022";
+    }
+  }
+
+  slider.addEventListener("input", render);
+
+  var playBtn = document.getElementById("play");
+  var timer = null;
+  playBtn.addEventListener("click", function () {
+    if (timer) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      slider.value = 72; render(); return;
+    }
+    playBtn.disabled = true;
+    slider.value = 0; render();
+    timer = setInterval(function () {
+      var v = +slider.value;
+      if (v >= 72) { clearInterval(timer); timer = null; playBtn.disabled = false; return; }
+      slider.value = v + 1; render();
+    }, 55);
+  });
+
+  render();
+</script>
+
+</body>
+</html>
