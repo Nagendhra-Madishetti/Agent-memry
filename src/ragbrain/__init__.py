@@ -7,6 +7,10 @@ dependency-free.
 
 from __future__ import annotations
 
+# The in-memory backend is the one exception to "backends live in submodules":
+# it is stdlib-only, so exporting it here keeps the top-level import
+# dependency-free while letting the quickstart run straight after pip install.
+from .backends.memory import MemoryLedger, MemorySubstrate
 from .core.audit import (
     AuditLedger,
     bitemporal_query,
@@ -40,6 +44,9 @@ __version__ = "0.1.0"
 __all__ = [
     "Substrate",
     "AsyncSubstrate",
+    # zero-infrastructure backend (stdlib only)
+    "MemoryLedger",
+    "MemorySubstrate",
     "Belief",
     "Episode",
     "RetrievalQuery",

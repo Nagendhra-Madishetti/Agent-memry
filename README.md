@@ -110,6 +110,37 @@ been benchmarked here, and no claim is made about them.
 
 ## Quick start
 
+No Docker, no database, no API keys. Just:
+
+```bash
+pip install ragbrain
+```
+
+```python
+from ragbrain import MemoryLedger
+
+db = MemoryLedger()
+db.remember("Acme HQ is Boston", key="acme.hq", valid_at="2019-01-01")
+db.remember("Acme HQ is Denver", key="acme.hq", valid_at="2022-01-01")  # supersedes
+
+db.answer("Where is Acme HQ?")                       # Acme HQ is Denver
+db.answer("Where is Acme HQ?", as_of="2020-01-01")   # Acme HQ is Boston
+db.replay("2021-06-01")[0].statement                 # Acme HQ is Boston
+```
+
+That third line is the one nothing else does. Replaying to June 2021 returns Boston
+**with no end date**, because the 2022 correction had not been learned yet. The past is
+reconstructed as it was believed, not as it was later revised.
+
+`MemoryLedger` is a real bi-temporal ledger, not a demo prop: it passes the same substrate
+conformance suite as the graph backends and shares their replay code. It runs in one process
+with lexical matching and no persistence, so use FalkorDB or Neo4j (below) for semantic
+retrieval, extraction, and durability.
+
+<details>
+<summary><b>The full platform, with a graph backend and the web UI</b></summary>
+<br>
+
 Prereqs: Docker. No API keys required for the demo.
 
 ```bash
@@ -126,6 +157,8 @@ as of 2020       -> Boston
 replay(2021)     -> Boston   (the 2022 Denver correction is un-known)
 timeline         -> Boston (2019 report) superseded by Denver (2022 press release)
 ```
+
+</details>
 
 Open the live scrubber at http://localhost:3000/playground and drag the system-time slider
 across 2022; the answer flips in front of you:
